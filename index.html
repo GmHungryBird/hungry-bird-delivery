@@ -38,6 +38,7 @@ button,input{font:inherit;color:inherit}
 .top-row{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
 .hello{font-size:15px;color:var(--crema)}
 .date{font-family:var(--cond);font-weight:700;font-size:30px;line-height:1.05;margin-top:2px}
+.topbtns{display:flex;flex-direction:column;gap:6px;align-items:flex-end}
 .linkbtn{background:none;border:1px solid rgba(255,255,255,.35);color:#fff;border-radius:8px;padding:6px 10px;font-size:14px;cursor:pointer}
 .tabs{display:flex;margin-top:14px}
 .tab{flex:1;background:none;border:0;border-bottom:3px solid transparent;color:var(--crema);padding:12px 4px 10px;font-weight:600;font-size:15px;cursor:pointer}
@@ -122,6 +123,8 @@ button,input{font:inherit;color:inherit}
 .who-btn span{color:var(--muted);font-size:14px}
 .who-btn[aria-pressed="true"]{border-color:var(--roast-2)}
 .pin{letter-spacing:8px;text-align:center;font-size:24px!important}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.chip{border:2px solid var(--line);background:var(--card);border-radius:999px;padding:8px 14px;font-weight:600;cursor:pointer}
 .err{color:var(--danger);margin-top:10px;font-weight:600}
 
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:40;
@@ -190,6 +193,9 @@ const state = {
   search: '', selected: null, pickCourier: null, loginErr: ''
 };
 const saveQueue = () => LS.set('hbd_queue', state.queue);
+const me = () => state.couriers.find(c => c.id === state.session?.kurirId);
+const needSupir = () => !!me()?.supirManual && !(state.session.supir && state.session.supirDate === state.today);
+const afterAuthScreen = () => needSupir() ? 'supir' : 'main';
 
 /* ====================== GPS ====================== */
 const gps = { watch: null, best: null, status: 'idle' };
@@ -267,7 +273,7 @@ async function flushQueue(){
 /* Gabungan: yang sudah di server + yang masih antri di HP */
 function todayMerged(){
   const pend = state.queue.filter(q => q.tanggal === state.today && q.kurirId === state.session?.kurirId)
-    .map(q => ({ uid:q.uid, jam:q.jam, customer:q.customerName, customerId:q.customerId, catatan:q.catatan, pending:true, error:q.error }));
+    .map(q => ({ uid:q.uid, jam:q.jam, customer:q.customerName, customerId:q.customerId, catatan:q.catatan, supir:q.supir, pending:true, error:q.error }));
   return [...state.todayList, ...pend].sort((a,b) => a.jam.localeCompare(b.jam));
 }
 function deliveredToday(){
@@ -279,6 +285,7 @@ function deliveredToday(){
 /* ====================== AKSI ====================== */
 async function markDelivered(){
   const c = state.selected; if (!c) return;
+  if (needSupir()){ closeSheet(); state.screen = 'supir'; return render(); }
   const btn = $('#go'); btn.disabled = true; btn.textContent = 'Mencatat…';
   if (!gps.best && gps.status === 'search'){
     btn.textContent = 'Menunggu GPS…';
@@ -288,7 +295,7 @@ async function markDelivered(){
   const now = new Date();
   const item = {
     uid: uuid(), kurirId: state.session.kurirId, customerId: c.id, customerName: c.nama,
-    catatan: ($('#note')?.value || '').trim(), deliveredAt: now.toISOString(),
+    catatan: ($('#note')?.value || '').trim(), supir: state.session.supir || '', deliveredAt: now.toISOString(),
     tanggal: ymd(now), jam: hms(now),
     lat: gps.best?.lat ?? null, lng: gps.best?.lng ?? null, acc: gps.best?.acc ?? null, tries: 0
   };
@@ -334,11 +341,22 @@ async function doLogin(){
     const d = await api('login', { kurirId: k.id, pin });
     state.session = { kurirId: d.kurir.id, nama: d.kurir.nama, pin };
     LS.set('hbd_session', state.session);
-    state.screen = 'main'; state.tab = 'antar'; state.loginErr = '';
+    state.tab = 'antar'; state.loginErr = '';
+    state.screen = afterAuthScreen();
     render(); loadToday(); flushQueue();
   }catch(e){
     state.loginErr = e.message; render();
   }
+}
+function saveSupir(name){
+  name = String(name || $('#supir')?.value || '').trim().replace(/\s+/g, ' ');
+  if (name.length < 2){ state.loginErr = 'Tulis nama supir dulu.'; return render(); }
+  state.session.supir = name; state.session.supirDate = state.today;
+  LS.set('hbd_session', state.session);
+  const recent = [name, ...LS.get('hbd_supir_names', []).filter(n => n.toLowerCase() !== name.toLowerCase())].slice(0, 8);
+  LS.set('hbd_supir_names', recent);
+  state.loginErr = ''; state.screen = 'main'; state.tab = 'antar';
+  render(); loadToday(); flushQueue();
 }
 function logout(msg){
   state.session = null; LS.del('hbd_session'); LS.del('hbd_today');
@@ -351,14 +369,18 @@ function render(){
   const app = $('#app');
   const demo = DEMO ? `<div class="demo">Mode demo: data tidak disimpan. Isi API_URL di index.html untuk menyambung ke Google Sheet.</div>` : '';
   if (state.screen === 'login') { app.innerHTML = demo + loginHTML(); return; }
+  if (state.screen === 'supir') { app.innerHTML = demo + supirHTML(); setTimeout(() => $('#supir')?.focus(), 30); return; }
   if (state.screen !== 'main') return;
   const n = todayMerged().filter(e => e.status !== 'Dibatalkan').length;
   app.innerHTML = demo + `
     <header class="top">
       <div class="top-row">
-        <div><div class="hello">Halo, ${esc(state.session.nama)}</div>
+        <div><div class="hello">${me()?.supirManual ? esc(state.session.nama) + ', supir ' + esc(state.session.supir || '-') : 'Halo, ' + esc(state.session.nama)}</div>
              <div class="date">${esc(shortDate(state.today))}</div></div>
-        <button class="linkbtn" data-act="logout">Ganti kurir</button>
+        <div class="topbtns">
+          ${me()?.supirManual ? `<button class="linkbtn" data-act="supir">Ganti supir</button>` : ''}
+          <button class="linkbtn" data-act="logout">Ganti kurir</button>
+        </div>
       </div>
       <nav class="tabs" role="tablist">
         ${tabBtn('antar','Antar')}${tabBtn('hari','Hari ini ('+n+')')}${tabBtn('riwayat','Riwayat')}
@@ -383,6 +405,22 @@ function loginHTML(){
     ${k ? `<div class="field"><label for="pin">PIN ${esc(k.nama)}</label>
       <input id="pin" class="pin" type="password" inputmode="numeric" autocomplete="off" maxlength="8"></div>
       <button class="primary" id="login-go" data-act="login">Masuk</button>` : ''}
+    ${state.loginErr ? `<div class="err" role="alert">${esc(state.loginErr)}</div>` : ''}
+  </div>`;
+}
+
+function supirHTML(){
+  const cur = state.session.supirDate === state.today ? state.session.supir : '';
+  const recent = LS.get('hbd_supir_names', []);
+  return `<div class="login">
+    <div class="brand">${esc(state.session.nama)}</div>
+    <div class="brand-sub">${esc(shortDate(state.today))}. Siapa supir yang mengantar?</div>
+    <div class="field"><label for="supir">Nama supir</label>
+      <input id="supir" type="text" maxlength="40" autocomplete="off" autocapitalize="words" value="${esc(cur)}" placeholder="Tulis nama supir"></div>
+    ${recent.length ? `<div class="chips">${recent.map(n => `<button class="chip" data-supirname="${esc(n)}">${esc(n)}</button>`).join('')}</div>` : ''}
+    <button class="primary" data-act="supir-save">Mulai antar</button>
+    ${cur ? `<button class="ghost" data-act="supir-cancel">Batal, tetap ${esc(cur)}</button>` : ''}
+    <button class="ghost" data-act="logout">Bukan ${esc(state.session.nama)}? Ganti kurir</button>
     ${state.loginErr ? `<div class="err" role="alert">${esc(state.loginErr)}</div>` : ''}
   </div>`;
 }
@@ -426,6 +464,7 @@ function entryHTML(e, allowCancel){
     <div class="t">${esc(e.jam.slice(0,5))}</div>
     <div><div class="c">${esc(e.customer)}</div>
       ${e.catatan ? `<div class="n">${esc(e.catatan)}</div>` : ''}
+      ${e.supir ? `<div class="n">Supir: ${esc(e.supir)}</div>` : ''}
       ${pills.length ? `<div class="pills">${pills.join('')}</div>` : ''}</div>
     <div>${action}</div>
   </div>`;
@@ -479,7 +518,7 @@ function showStamp(item){
   div.innerHTML = `<div class="stampview" role="dialog" aria-modal="true" aria-label="Kiriman tercatat">
     <div class="stamp"><div class="w">TERKIRIM</div><div class="h">${esc(item.jam.slice(0,5))}</div><div class="d">${esc(shortDate(item.tanggal))}</div></div>
     <div class="who">${esc(item.customerName)}</div>
-    <div class="by">diantar oleh ${esc(state.session.nama)}${item.lat != null ? `, titik ±${item.acc} m` : ', tanpa titik GPS'}</div>
+    <div class="by">diantar oleh ${esc(item.supir ? item.supir + ' (' + state.session.nama + ')' : state.session.nama)}${item.lat != null ? `, titik ±${item.acc} m` : ', tanpa titik GPS'}</div>
     <div class="sync warn" id="sync" aria-live="polite">Menyimpan ke Google Sheet…</div>
     <button class="primary" data-act="stamp-done">Selesai</button>
   </div>`;
@@ -489,7 +528,7 @@ function showStamp(item){
 
 /* ====================== EVENT ====================== */
 document.addEventListener('click', e => {
-  const t = e.target.closest('[data-act],[data-tab],[data-cust],[data-courier],[data-cancel],[data-drop]');
+  const t = e.target.closest('[data-act],[data-tab],[data-cust],[data-courier],[data-cancel],[data-drop],[data-supirname]');
   if (!t) return;
   if (t.dataset.tab){
     state.tab = t.dataset.tab; render();
@@ -499,6 +538,7 @@ document.addEventListener('click', e => {
   }
   if (t.dataset.cust){ const c = state.customers.find(x => x.id === t.dataset.cust); if (c) openSheet(c); return; }
   if (t.dataset.courier){ state.pickCourier = state.couriers.find(x => x.id === t.dataset.courier); state.loginErr=''; render(); setTimeout(()=>$('#pin')?.focus(), 30); return; }
+  if (t.dataset.supirname) return saveSupir(t.dataset.supirname);
   if (t.dataset.cancel) return cancelEntry(t.dataset.cancel);
   if (t.dataset.drop) return dropPending(t.dataset.drop);
   switch (t.dataset.act){
@@ -506,6 +546,9 @@ document.addEventListener('click', e => {
     case 'deliver': return markDelivered();
     case 'stamp-done': $('#stampwrap')?.remove(); state.tab = 'antar'; state.search = ''; return render();
     case 'login': return doLogin();
+    case 'supir': state.loginErr = ''; state.screen = 'supir'; return render();
+    case 'supir-save': return saveSupir();
+    case 'supir-cancel': state.screen = 'main'; return render();
     case 'logout': if (!state.queue.length || confirm('Masih ada kiriman yang belum terkirim ke server. Tetap ganti kurir?')) logout(); return;
     case 'flush': flushQueue().then(() => toast(state.queue.length ? 'Masih ada yang belum terkirim.' : 'Semua sudah terkirim.')); return;
   }
@@ -518,6 +561,7 @@ document.addEventListener('change', e => {
 });
 document.addEventListener('keydown', e => {
   if (e.key === 'Enter' && e.target.id === 'pin') doLogin();
+  if (e.key === 'Enter' && e.target.id === 'supir') saveSupir();
   if (e.key === 'Enter' && e.target.id === 'note') markDelivered();
   if (e.key === 'Escape' && state.selected) closeSheet();
 });
@@ -525,7 +569,7 @@ window.addEventListener('online', flushQueue);
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState !== 'visible') return;
   const t = ymd(new Date());
-  if (t !== state.today){ state.today = t; state.todayList = []; loadToday(); }  // lewat tengah malam → tanggal ganti otomatis
+  if (t !== state.today){ state.today = t; state.todayList = []; if (state.session && needSupir()){ closeSheet(); state.screen = 'supir'; render(); } loadToday(); }  // lewat tengah malam → tanggal ganti otomatis
   flushQueue();
 });
 setInterval(() => { if (state.queue.length) flushQueue(); }, 30000);
@@ -533,7 +577,7 @@ setInterval(() => { if (state.queue.length) flushQueue(); }, 30000);
 /* ====================== MULAI ====================== */
 (async function boot(){
   if (!state.customers.length || !state.couriers.length) await loadInit(); else loadInit();
-  if (state.session){ state.screen = 'main'; render(); loadToday(); flushQueue(); }
+  if (state.session){ state.screen = afterAuthScreen(); render(); loadToday(); flushQueue(); }
   else { state.screen = 'login'; render(); }
 })();
 
@@ -542,8 +586,8 @@ setInterval(() => { if (state.queue.length) flushQueue(); }, 30000);
 function demoApi(action, b){
   const db = demoApi.db || (demoApi.db = {
     couriers: [
-      { id:'K-01', nama:'Kurir Mobil 1', kendaraan:'Mobil', divisi:'Semua', pin:'1234' },
-      { id:'K-02', nama:'Kurir Mobil 2', kendaraan:'Mobil', divisi:'Semua', pin:'1234' },
+      { id:'K-01', nama:'Kurir Mobil 1', kendaraan:'Mobil', divisi:'Semua', pin:'1234', supirManual:true },
+      { id:'K-02', nama:'Kurir Mobil 2', kendaraan:'Mobil', divisi:'Semua', pin:'1234', supirManual:true },
       { id:'K-03', nama:'Kurir Motor Kopi', kendaraan:'Motor', divisi:'Hungry Bird', pin:'1234' },
       { id:'K-04', nama:'Kurir Motor Pastry', kendaraan:'Motor', divisi:'Lazy Hands', pin:'1234' }
     ],
@@ -562,7 +606,7 @@ function demoApi(action, b){
       const c = db.customers.find(x => x.id === b.customerId);
       let cek = 'Tanpa GPS';
       if (b.lat != null){ if (c.lat == null && b.acc <= 100){ c.lat = b.lat; c.lng = b.lng; cek = 'Titik baru disimpan'; } else cek = 'Sesuai titik'; }
-      const entry = { uid:b.uid, tanggal:b.tanggal, jam:b.jam, kurirId:k.id, kurir:k.nama, customerId:c.id, customer:c.nama, catatan:b.catatan, cek, status:'Terkirim', serverTs:Date.now() };
+      const entry = { uid:b.uid, tanggal:b.tanggal, jam:b.jam, kurirId:k.id, kurir:k.nama, supir:b.supir||'', customerId:c.id, customer:c.nama, catatan:b.catatan, cek, status:'Terkirim', serverTs:Date.now() };
       db.log.push(entry); return { ok:true, entry };
     }
     if (action === 'cancel'){ auth(); const e = db.log.find(x => x.uid === b.uid); e.status = 'Dibatalkan'; return { ok:true, entry:e }; }
