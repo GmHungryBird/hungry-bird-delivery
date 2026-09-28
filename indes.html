@@ -1,0 +1,573 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#4A2E1C">
+<title>Hungry Bird Delivery</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛵</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F3F5F2; --card:#FFFFFF; --ink:#17201B; --muted:#5C6861; --line:#D6DCD7;
+  --roast:#4A2E1C; --roast-2:#6B442A; --crema:#EBDCCB;
+  --stamp:#2B3FC7; --ok:#1D7348; --ok-bg:#E2F0E7; --warn:#8F5200; --warn-bg:#FAEBD5;
+  --danger:#B3261E; --danger-bg:#FBE3E1;
+  --font:'Barlow',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --cond:'Barlow Condensed','Arial Narrow',system-ui,sans-serif;
+  box-sizing:border-box;
+}
+@media (prefers-color-scheme: dark){
+  :root{--paper:#121614;--card:#1B211E;--ink:#E9EEEA;--muted:#9AA69F;--line:#2C3531;
+    --roast:#3A2416;--roast-2:#C9A27E;--crema:#D9C3AC;--stamp:#8F9BFF;--ok:#6FCF97;--ok-bg:#1C3326;
+    --warn:#F2B25C;--warn-bg:#3A2A12;--danger:#FF8A80;--danger-bg:#3A1C1A}
+}
+*,*::before,*::after{box-sizing:inherit}
+html,body{margin:0}
+body{background:var(--paper);color:var(--ink);font:16px/1.45 var(--font);-webkit-font-smoothing:antialiased;
+  padding-bottom:env(safe-area-inset-bottom,0px)}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--stamp);outline-offset:2px}
+.wrap{max-width:560px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;background:var(--paper)}
+.demo{background:var(--warn-bg);color:var(--warn);font-size:14px;padding:8px 16px;text-align:center}
+
+/* Header */
+.top{background:var(--roast);color:#fff;padding:calc(14px + env(safe-area-inset-top,0px)) 16px 0}
+.top-row{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.hello{font-size:15px;color:var(--crema)}
+.date{font-family:var(--cond);font-weight:700;font-size:30px;line-height:1.05;margin-top:2px}
+.linkbtn{background:none;border:1px solid rgba(255,255,255,.35);color:#fff;border-radius:8px;padding:6px 10px;font-size:14px;cursor:pointer}
+.tabs{display:flex;margin-top:14px}
+.tab{flex:1;background:none;border:0;border-bottom:3px solid transparent;color:var(--crema);padding:12px 4px 10px;font-weight:600;font-size:15px;cursor:pointer}
+.tab[aria-selected="true"]{color:#fff;border-bottom-color:#fff}
+
+/* Search + customer list */
+.search{position:sticky;top:0;z-index:4;background:var(--paper);padding:12px 16px;border-bottom:1px solid var(--line)}
+.search input{width:100%;height:50px;border:2px solid var(--line);border-radius:12px;background:var(--card);padding:0 14px;font-size:17px}
+.search input:focus{border-color:var(--roast-2);outline:none}
+.count{font-size:13px;color:var(--muted);margin-top:6px}
+.cust{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:none;border:0;border-bottom:1px solid var(--line);padding:14px 16px;cursor:pointer}
+.cust:active{background:var(--card)}
+.cust .name{font-weight:600;font-size:17px;line-height:1.25}
+.cust .sub{color:var(--muted);font-size:14px}
+.minstamp{margin-left:auto;flex:none;font-family:var(--cond);font-weight:700;font-size:17px;color:var(--stamp);
+  border:2px solid var(--stamp);border-radius:5px;padding:0 6px;transform:rotate(-4deg)}
+.minstamp.pending{color:var(--warn);border-color:var(--warn)}
+.empty{padding:40px 24px;text-align:center;color:var(--muted)}
+
+/* Entries */
+.list-head{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line);gap:12px}
+.list-head b{font-size:17px}
+.list-head input[type=date]{height:44px;border:2px solid var(--line);border-radius:10px;background:var(--card);padding:0 10px}
+.entry{display:grid;grid-template-columns:auto 1fr auto;gap:4px 12px;align-items:start;padding:14px 16px;border-bottom:1px solid var(--line)}
+.entry .t{font-family:var(--cond);font-weight:700;font-size:28px;line-height:1;min-width:66px}
+.entry .c{font-weight:600;font-size:17px;line-height:1.25}
+.entry .n{color:var(--muted);font-size:14px}
+.entry.void .t,.entry.void .c{text-decoration:line-through;color:var(--muted)}
+.pills{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.pill{font-size:13px;font-weight:600;border-radius:999px;padding:2px 9px;background:var(--line);color:var(--ink)}
+.pill.ok{background:var(--ok-bg);color:var(--ok)}
+.pill.warn{background:var(--warn-bg);color:var(--warn)}
+.pill.danger{background:var(--danger-bg);color:var(--danger)}
+.smallbtn{background:none;border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-size:14px;cursor:pointer;color:var(--danger)}
+
+/* Sheet */
+.scrim{position:fixed;inset:0;background:rgba(10,14,12,.5);z-index:20}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:21;max-width:560px;margin:0 auto;background:var(--card);
+  border-radius:18px 18px 0 0;padding:22px 16px calc(18px + env(safe-area-inset-bottom,0px));
+  animation:up .18s ease-out}
+@keyframes up{from{transform:translateY(24px);opacity:0}to{transform:none;opacity:1}}
+.sheet h2{margin:0;font-size:24px;line-height:1.2}
+.sheet .addr{color:var(--muted);margin-top:4px;font-size:15px}
+.sheet .addr a{color:var(--stamp)}
+.field{margin-top:18px}
+.field label{display:block;font-weight:600;font-size:15px;margin-bottom:6px}
+.field input{width:100%;height:50px;border:2px solid var(--line);border-radius:12px;background:var(--paper);padding:0 14px;font-size:17px}
+.gps{display:flex;align-items:center;gap:8px;margin-top:14px;font-size:15px;color:var(--muted)}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--line);flex:none}
+.dot.search{background:var(--warn);animation:blink 1s infinite}
+.dot.ok{background:var(--ok)}
+.dot.off{background:var(--danger)}
+@keyframes blink{50%{opacity:.3}}
+.primary{display:block;width:100%;height:60px;margin-top:18px;border:0;border-radius:14px;background:var(--roast);color:#fff;
+  font-family:var(--cond);font-weight:700;font-size:24px;letter-spacing:.3px;cursor:pointer}
+.primary:disabled{opacity:.6}
+.ghost{display:block;width:100%;height:48px;margin-top:8px;border:0;background:none;color:var(--muted);font-size:16px;cursor:pointer}
+
+/* Stamp confirmation */
+.stampview{position:fixed;inset:0;z-index:30;background:var(--paper);display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:calc(24px + env(safe-area-inset-top,0px)) 24px calc(24px + env(safe-area-inset-bottom,0px));text-align:center}
+.stamp{border:5px solid var(--stamp);color:var(--stamp);border-radius:14px;padding:16px 26px 14px;transform:rotate(-7deg);
+  font-family:var(--cond);animation:thunk .32s cubic-bezier(.2,1.6,.4,1) both;max-width:100%}
+.stamp .w{font-weight:800;font-size:42px;letter-spacing:4px;line-height:1}
+.stamp .h{font-weight:800;font-size:84px;line-height:.95;margin-top:6px}
+.stamp .d{font-weight:600;font-size:19px;margin-top:4px}
+@keyframes thunk{from{transform:rotate(-7deg) scale(1.7);opacity:0}to{transform:rotate(-7deg) scale(1);opacity:1}}
+.stampview .who{margin-top:34px;font-size:20px;font-weight:600}
+.stampview .by{color:var(--muted);margin-top:2px}
+.sync{margin-top:14px;font-size:15px;font-weight:600}
+.sync.ok{color:var(--ok)} .sync.warn{color:var(--warn)} .sync.danger{color:var(--danger)}
+.stampview .primary{max-width:360px}
+
+/* Login */
+.login{padding:calc(40px + env(safe-area-inset-top,0px)) 20px 32px;flex:1}
+.brand{font-family:var(--cond);font-weight:800;font-size:44px;line-height:1;color:var(--roast-2)}
+.brand-sub{color:var(--muted);margin-top:6px;font-size:17px}
+.who-list{margin-top:28px;display:grid;gap:10px}
+.who-btn{display:flex;justify-content:space-between;align-items:center;width:100%;min-height:62px;padding:10px 16px;border:2px solid var(--line);
+  border-radius:14px;background:var(--card);cursor:pointer;text-align:left}
+.who-btn b{font-size:18px}
+.who-btn span{color:var(--muted);font-size:14px}
+.who-btn[aria-pressed="true"]{border-color:var(--roast-2)}
+.pin{letter-spacing:8px;text-align:center;font-size:24px!important}
+.err{color:var(--danger);margin-top:10px;font-weight:600}
+
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:40;
+  background:var(--ink);color:var(--paper);padding:12px 18px;border-radius:12px;font-size:15px;max-width:calc(100% - 32px)}
+.spinner{padding:60px;text-align:center;color:var(--muted)}
+@media (prefers-reduced-motion: reduce){*{animation:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"><div class="spinner">Memuat…</div></div>
+
+<script>
+/* ====================== KONFIGURASI ======================
+   Tempel URL Web App dari Apps Script (Deploy → Web app) di bawah.
+   Selama belum diisi, aplikasi jalan dalam MODE DEMO (data tidak disimpan). */
+const API_URL = 'https://script.google.com/macros/s/AKfycbxCwap8QfmmM9awoHkbDWcLCdF-p1vx5BtrI_-YtCCUTEzNpN8vrerAzmYRX-tGTuzvzg/exec';
+
+const TZ = 'Asia/Makassar';
+const BATAL_MENIT = 15;
+const DEMO = !/^https:\/\/script\.google\.com\//.test(API_URL);
+
+/* ====================== UTIL ====================== */
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const LS = {
+  get(k, d){ try{ const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; }catch{ return d; } },
+  set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch{} },
+  del(k){ try{ localStorage.removeItem(k); }catch{} }
+};
+const ymd = d => new Intl.DateTimeFormat('en-CA',{timeZone:TZ,year:'numeric',month:'2-digit',day:'2-digit'}).format(d);
+const hms = d => new Intl.DateTimeFormat('en-GB',{timeZone:TZ,hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}).format(d);
+const longDate = s => new Intl.DateTimeFormat('id-ID',{timeZone:TZ,weekday:'long',day:'numeric',month:'long',year:'numeric'}).format(new Date(s+'T12:00:00+08:00'));
+const shortDate = s => new Intl.DateTimeFormat('id-ID',{timeZone:TZ,weekday:'long',day:'numeric',month:'short'}).format(new Date(s+'T12:00:00+08:00'));
+const norm = s => String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,' ').trim();
+const uuid = () => (crypto.randomUUID ? crypto.randomUUID() : 'x'+Date.now().toString(36)+Math.random().toString(36).slice(2));
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+function toast(msg){
+  const t = document.createElement('div'); t.className='toast'; t.setAttribute('role','status'); t.textContent = msg;
+  document.body.appendChild(t); setTimeout(() => t.remove(), 3200);
+}
+
+/* ====================== API ====================== */
+async function api(action, body = {}){
+  if (DEMO) return demoApi(action, body);
+  let res;
+  try{
+    // Content-Type text/plain (bawaan) supaya tidak kena CORS preflight di Apps Script
+    res = await fetch(API_URL, { method:'POST', body: JSON.stringify({ action, ...body }) });
+  }catch(e){ const err = new Error('Tidak ada sinyal / server tidak terjangkau.'); err.network = true; throw err; }
+  let data;
+  try{ data = await res.json(); }catch{ const err = new Error('Balasan server tidak terbaca.'); err.network = true; throw err; }
+  if (!data.ok){ const err = new Error(data.error || 'Terjadi kesalahan.'); err.server = true; throw err; }
+  return data;
+}
+
+/* ====================== STATE ====================== */
+const state = {
+  screen: 'boot', tab: 'antar',
+  customers: LS.get('hbd_customers', []),
+  couriers: LS.get('hbd_couriers', []),
+  session: LS.get('hbd_session', null),     // {kurirId, nama, pin}
+  queue: LS.get('hbd_queue', []),           // kiriman yang belum sampai server
+  today: ymd(new Date()),
+  todayList: [], histDate: null, histList: [], histLoading: false,
+  search: '', selected: null, pickCourier: null, loginErr: ''
+};
+const saveQueue = () => LS.set('hbd_queue', state.queue);
+
+/* ====================== GPS ====================== */
+const gps = { watch: null, best: null, status: 'idle' };
+function gpsStart(){
+  gps.best = null;
+  if (!('geolocation' in navigator)){ gps.status = 'off'; return updateGps(); }
+  gps.status = 'search'; updateGps();
+  gps.watch = navigator.geolocation.watchPosition(p => {
+    const c = { lat: +p.coords.latitude.toFixed(6), lng: +p.coords.longitude.toFixed(6), acc: Math.round(p.coords.accuracy), t: Date.now() };
+    if (!gps.best || c.acc <= gps.best.acc || Date.now() - gps.best.t > 20000) gps.best = c;
+    gps.status = 'ok'; updateGps();
+  }, e => { if (!gps.best){ gps.status = e.code === 1 ? 'denied' : 'off'; updateGps(); } },
+  { enableHighAccuracy: true, maximumAge: 15000, timeout: 20000 });
+}
+function gpsStop(){ if (gps.watch != null) navigator.geolocation.clearWatch(gps.watch); gps.watch = null; }
+function updateGps(){
+  const el = $('#gps'); if (!el) return;
+  const m = {
+    idle:   ['', 'GPS belum aktif'],
+    search: ['search', 'Mencari lokasi…'],
+    ok:     ['ok', gps.best ? `Lokasi terkunci, akurasi ±${gps.best.acc} m` : 'Lokasi terkunci'],
+    denied: ['off', 'Izin lokasi ditolak. Kiriman tetap tercatat tanpa titik.'],
+    off:    ['off', 'Lokasi tidak tersedia. Kiriman tetap tercatat tanpa titik.']
+  }[gps.status];
+  el.innerHTML = `<span class="dot ${m[0]}"></span><span>${esc(m[1])}</span>`;
+}
+
+/* ====================== DATA ====================== */
+async function loadInit(){
+  try{
+    const d = await api('init');
+    state.customers = d.customers; state.couriers = d.couriers;
+    LS.set('hbd_customers', d.customers); LS.set('hbd_couriers', d.couriers);
+  }catch(e){
+    if (!state.customers.length) toast('Gagal memuat data: ' + e.message);
+  }
+}
+async function loadToday(){
+  if (!state.session) return;
+  try{
+    const d = await api('list', { kurirId: state.session.kurirId, pin: state.session.pin, date: state.today });
+    state.todayList = d.entries;
+    LS.set('hbd_today', { date: state.today, entries: d.entries });
+  }catch(e){
+    const c = LS.get('hbd_today', null);
+    if (c && c.date === state.today) state.todayList = c.entries;
+    if (e.server && /PIN|Kurir/.test(e.message)) return logout(e.message);
+  }
+  if (state.screen === 'main') render();
+}
+
+let flushing = false;
+async function flushQueue(){
+  if (flushing || !state.queue.length || !state.session) return;
+  flushing = true;
+  try{
+    for (const q of [...state.queue]){
+      try{
+        const d = await api('deliver', { ...q, pin: state.session.pin, offline: q.tries > 0 });
+        state.queue = state.queue.filter(x => x.uid !== q.uid);
+        if (d.entry.tanggal === state.today && !state.todayList.some(e => e.uid === d.entry.uid)) state.todayList.push(d.entry);
+      }catch(e){
+        q.tries = (q.tries || 0) + 1;
+        if (e.network) break;
+        q.error = e.message;
+      }
+      saveQueue();
+    }
+  } finally { flushing = false; }
+  state.todayList.sort((a,b) => a.jam.localeCompare(b.jam));
+  LS.set('hbd_today', { date: state.today, entries: state.todayList });
+  if (state.screen === 'main' && !state.selected) render();
+}
+
+/* Gabungan: yang sudah di server + yang masih antri di HP */
+function todayMerged(){
+  const pend = state.queue.filter(q => q.tanggal === state.today && q.kurirId === state.session?.kurirId)
+    .map(q => ({ uid:q.uid, jam:q.jam, customer:q.customerName, customerId:q.customerId, catatan:q.catatan, pending:true, error:q.error }));
+  return [...state.todayList, ...pend].sort((a,b) => a.jam.localeCompare(b.jam));
+}
+function deliveredToday(){
+  const m = {};
+  for (const e of todayMerged()) if (e.status !== 'Dibatalkan') m[e.customerId] = e;
+  return m;
+}
+
+/* ====================== AKSI ====================== */
+async function markDelivered(){
+  const c = state.selected; if (!c) return;
+  const btn = $('#go'); btn.disabled = true; btn.textContent = 'Mencatat…';
+  if (!gps.best && gps.status === 'search'){
+    btn.textContent = 'Menunggu GPS…';
+    const until = Date.now() + 6000;
+    while (!gps.best && gps.status === 'search' && Date.now() < until) await sleep(250);
+  }
+  const now = new Date();
+  const item = {
+    uid: uuid(), kurirId: state.session.kurirId, customerId: c.id, customerName: c.nama,
+    catatan: ($('#note')?.value || '').trim(), deliveredAt: now.toISOString(),
+    tanggal: ymd(now), jam: hms(now),
+    lat: gps.best?.lat ?? null, lng: gps.best?.lng ?? null, acc: gps.best?.acc ?? null, tries: 0
+  };
+  gpsStop();
+  state.queue.push(item); saveQueue();
+  state.selected = null;
+  showStamp(item);
+  await flushQueue();
+  const still = state.queue.find(q => q.uid === item.uid);
+  const el = $('#sync'); if (!el) return;
+  if (!still){ el.className = 'sync ok'; el.textContent = DEMO ? 'Tersimpan (mode demo, tidak masuk Sheet).' : 'Tersimpan di Google Sheet.'; }
+  else if (still.error){ el.className = 'sync danger'; el.textContent = 'Belum tersimpan: ' + still.error; }
+  else { el.className = 'sync warn'; el.textContent = 'Tersimpan di HP. Akan terkirim otomatis saat ada sinyal.'; }
+}
+
+async function cancelEntry(uid){
+  if (!confirm('Batalkan catatan kiriman ini?')) return;
+  try{
+    const d = await api('cancel', { kurirId: state.session.kurirId, pin: state.session.pin, uid });
+    state.todayList = state.todayList.map(e => e.uid === uid ? d.entry : e);
+    toast('Catatan dibatalkan.'); render();
+  }catch(e){ toast(e.message); }
+}
+function dropPending(uid){
+  if (!confirm('Hapus catatan yang belum terkirim ini?')) return;
+  state.queue = state.queue.filter(q => q.uid !== uid); saveQueue(); render();
+}
+
+async function loadHistory(date){
+  state.histDate = date; state.histLoading = true; render();
+  try{
+    const d = await api('list', { kurirId: state.session.kurirId, pin: state.session.pin, date });
+    state.histList = d.entries;
+  }catch(e){ state.histList = []; toast(e.message); }
+  state.histLoading = false; render();
+}
+
+async function doLogin(){
+  const pin = ($('#pin')?.value || '').trim();
+  const k = state.pickCourier; if (!k || !pin) return;
+  const b = $('#login-go'); b.disabled = true; b.textContent = 'Memeriksa…';
+  try{
+    const d = await api('login', { kurirId: k.id, pin });
+    state.session = { kurirId: d.kurir.id, nama: d.kurir.nama, pin };
+    LS.set('hbd_session', state.session);
+    state.screen = 'main'; state.tab = 'antar'; state.loginErr = '';
+    render(); loadToday(); flushQueue();
+  }catch(e){
+    state.loginErr = e.message; render();
+  }
+}
+function logout(msg){
+  state.session = null; LS.del('hbd_session'); LS.del('hbd_today');
+  state.todayList = []; state.screen = 'login'; state.pickCourier = null; state.loginErr = msg || '';
+  render();
+}
+
+/* ====================== RENDER ====================== */
+function render(){
+  const app = $('#app');
+  const demo = DEMO ? `<div class="demo">Mode demo: data tidak disimpan. Isi API_URL di index.html untuk menyambung ke Google Sheet.</div>` : '';
+  if (state.screen === 'login') { app.innerHTML = demo + loginHTML(); return; }
+  if (state.screen !== 'main') return;
+  const n = todayMerged().filter(e => e.status !== 'Dibatalkan').length;
+  app.innerHTML = demo + `
+    <header class="top">
+      <div class="top-row">
+        <div><div class="hello">Halo, ${esc(state.session.nama)}</div>
+             <div class="date">${esc(shortDate(state.today))}</div></div>
+        <button class="linkbtn" data-act="logout">Ganti kurir</button>
+      </div>
+      <nav class="tabs" role="tablist">
+        ${tabBtn('antar','Antar')}${tabBtn('hari','Hari ini ('+n+')')}${tabBtn('riwayat','Riwayat')}
+      </nav>
+    </header>
+    <main>${state.tab === 'antar' ? antarHTML() : state.tab === 'hari' ? hariHTML() : riwayatHTML()}</main>`;
+  if (state.tab === 'antar') renderCustList();
+}
+const tabBtn = (id, label) => `<button class="tab" role="tab" aria-selected="${state.tab===id}" data-tab="${id}">${esc(label)}</button>`;
+
+function loginHTML(){
+  const k = state.pickCourier;
+  return `<div class="login">
+    <div class="brand">Hungry Bird</div>
+    <div class="brand-sub">Catatan antar. Pilih nama kamu untuk mulai.</div>
+    <div class="who-list">
+      ${state.couriers.length ? state.couriers.map(c => `
+        <button class="who-btn" data-courier="${esc(c.id)}" aria-pressed="${k && k.id===c.id}">
+          <b>${esc(c.nama)}</b><span>${esc([c.kendaraan, c.divisi].filter(Boolean).join(', '))}</span>
+        </button>`).join('') : `<div class="empty">Belum ada kurir. Isi tab Kurir di Google Sheet, lalu muat ulang halaman ini.</div>`}
+    </div>
+    ${k ? `<div class="field"><label for="pin">PIN ${esc(k.nama)}</label>
+      <input id="pin" class="pin" type="password" inputmode="numeric" autocomplete="off" maxlength="8"></div>
+      <button class="primary" id="login-go" data-act="login">Masuk</button>` : ''}
+    ${state.loginErr ? `<div class="err" role="alert">${esc(state.loginErr)}</div>` : ''}
+  </div>`;
+}
+
+function antarHTML(){
+  return `<div class="search">
+      <input id="q" type="search" placeholder="Cari customer…" value="${esc(state.search)}" autocomplete="off" aria-label="Cari customer">
+      <div class="count" id="count"></div>
+    </div>
+    <div id="custlist"></div>`;
+}
+function renderCustList(){
+  const box = $('#custlist'); if (!box) return;
+  const q = norm(state.search);
+  const done = deliveredToday();
+  const list = state.customers.filter(c => !q || norm(c.nama + ' ' + c.area + ' ' + c.id).includes(q));
+  $('#count').textContent = `${list.length} customer${q ? ' cocok' : ''}`;
+  box.innerHTML = list.length ? list.map(c => {
+    const d = done[c.id];
+    return `<button class="cust" data-cust="${esc(c.id)}">
+      <div><div class="name">${esc(c.nama)}</div>
+      <div class="sub">${esc(c.area || c.alamat || c.id)}</div></div>
+      ${d ? `<span class="minstamp ${d.pending?'pending':''}" title="Sudah diantar hari ini">${esc(d.jam.slice(0,5))}</span>` : ''}
+    </button>`;
+  }).join('') : `<div class="empty">Tidak ada customer dengan nama itu. Cek ejaan, atau minta admin menambahkannya di tab Customer.</div>`;
+}
+
+function entryHTML(e, allowCancel){
+  const pills = [];
+  if (e.pending) pills.push(e.error ? `<span class="pill danger">Gagal: ${esc(e.error)}</span>` : `<span class="pill warn">Menunggu sinyal</span>`);
+  if (e.status === 'Dibatalkan') pills.push(`<span class="pill danger">Dibatalkan</span>`);
+  else if (e.cek){
+    const cls = /^Sesuai|^Titik baru/.test(e.cek) ? 'ok' : /^Jauh|^Tanpa/.test(e.cek) ? 'warn' : '';
+    pills.push(`<span class="pill ${cls}">${esc(e.cek)}</span>`);
+  }
+  let action = '';
+  if (e.pending) action = `<button class="smallbtn" data-drop="${esc(e.uid)}">Hapus</button>`;
+  else if (allowCancel && e.status === 'Terkirim' && e.serverTs && Date.now() - e.serverTs < BATAL_MENIT*60000)
+    action = `<button class="smallbtn" data-cancel="${esc(e.uid)}">Batalkan</button>`;
+  return `<div class="entry ${e.status==='Dibatalkan'?'void':''}">
+    <div class="t">${esc(e.jam.slice(0,5))}</div>
+    <div><div class="c">${esc(e.customer)}</div>
+      ${e.catatan ? `<div class="n">${esc(e.catatan)}</div>` : ''}
+      ${pills.length ? `<div class="pills">${pills.join('')}</div>` : ''}</div>
+    <div>${action}</div>
+  </div>`;
+}
+
+function hariHTML(){
+  const list = todayMerged();
+  const n = list.filter(e => e.status !== 'Dibatalkan').length;
+  return `<div class="list-head"><b>${n} kiriman hari ini</b>
+      ${state.queue.length ? `<button class="smallbtn" data-act="flush" style="color:var(--ink)">Kirim ulang</button>` : ''}</div>
+    ${list.length ? list.map(e => entryHTML(e, true)).join('') : `<div class="empty">Belum ada kiriman hari ini. Buka tab Antar dan pilih customer setelah pesanan diterima.</div>`}`;
+}
+
+function riwayatHTML(){
+  const d = state.histDate || state.today;
+  const n = state.histList.filter(e => e.status !== 'Dibatalkan').length;
+  return `<div class="list-head">
+      <b>${state.histLoading ? 'Memuat…' : n + ' kiriman'}</b>
+      <input type="date" id="hdate" value="${esc(d)}" max="${esc(state.today)}" aria-label="Pilih tanggal">
+    </div>
+    <div class="n" style="padding:10px 16px 0;color:var(--muted)">${esc(longDate(d))}</div>
+    ${!state.histLoading && state.histList.length ? state.histList.map(e => entryHTML(e, false)).join('')
+      : state.histLoading ? '' : `<div class="empty">Tidak ada kiriman di tanggal ini.</div>`}`;
+}
+
+function openSheet(c){
+  state.selected = c;
+  const done = deliveredToday()[c.id];
+  const maps = c.lat != null && c.lng != null ? `https://www.google.com/maps/dir/?api=1&destination=${c.lat},${c.lng}` : '';
+  const div = document.createElement('div'); div.id = 'sheetwrap';
+  div.innerHTML = `<div class="scrim" data-act="close"></div>
+    <section class="sheet" role="dialog" aria-modal="true" aria-labelledby="sh-t">
+      <h2 id="sh-t">${esc(c.nama)}</h2>
+      <div class="addr">${esc(c.alamat || c.area || 'Alamat belum diisi')}${maps ? `<br><a href="${maps}" target="_blank" rel="noopener">Buka rute di Maps</a>` : ''}</div>
+      ${done ? `<div class="pills"><span class="pill warn">Sudah dicatat hari ini pukul ${esc(done.jam.slice(0,5))}</span></div>` : ''}
+      <div class="field"><label for="note">Catatan atau no. nota (opsional)</label>
+        <input id="note" type="text" maxlength="120" placeholder="Contoh: INV-0921, 2 kg beans" autocomplete="off"></div>
+      <div class="gps" id="gps" aria-live="polite"></div>
+      <button class="primary" id="go" data-act="deliver">Tandai terkirim</button>
+      <button class="ghost" data-act="close">Tutup</button>
+    </section>`;
+  document.body.appendChild(div);
+  gpsStart();
+  $('#go').focus();
+}
+function closeSheet(){ gpsStop(); state.selected = null; $('#sheetwrap')?.remove(); }
+
+function showStamp(item){
+  $('#sheetwrap')?.remove();
+  const div = document.createElement('div'); div.id = 'stampwrap';
+  div.innerHTML = `<div class="stampview" role="dialog" aria-modal="true" aria-label="Kiriman tercatat">
+    <div class="stamp"><div class="w">TERKIRIM</div><div class="h">${esc(item.jam.slice(0,5))}</div><div class="d">${esc(shortDate(item.tanggal))}</div></div>
+    <div class="who">${esc(item.customerName)}</div>
+    <div class="by">diantar oleh ${esc(state.session.nama)}${item.lat != null ? `, titik ±${item.acc} m` : ', tanpa titik GPS'}</div>
+    <div class="sync warn" id="sync" aria-live="polite">Menyimpan ke Google Sheet…</div>
+    <button class="primary" data-act="stamp-done">Selesai</button>
+  </div>`;
+  document.body.appendChild(div);
+  if (navigator.vibrate) navigator.vibrate(60);
+}
+
+/* ====================== EVENT ====================== */
+document.addEventListener('click', e => {
+  const t = e.target.closest('[data-act],[data-tab],[data-cust],[data-courier],[data-cancel],[data-drop]');
+  if (!t) return;
+  if (t.dataset.tab){
+    state.tab = t.dataset.tab; render();
+    if (state.tab === 'hari') loadToday();
+    if (state.tab === 'riwayat') loadHistory(state.histDate || state.today);
+    return;
+  }
+  if (t.dataset.cust){ const c = state.customers.find(x => x.id === t.dataset.cust); if (c) openSheet(c); return; }
+  if (t.dataset.courier){ state.pickCourier = state.couriers.find(x => x.id === t.dataset.courier); state.loginErr=''; render(); setTimeout(()=>$('#pin')?.focus(), 30); return; }
+  if (t.dataset.cancel) return cancelEntry(t.dataset.cancel);
+  if (t.dataset.drop) return dropPending(t.dataset.drop);
+  switch (t.dataset.act){
+    case 'close': return closeSheet();
+    case 'deliver': return markDelivered();
+    case 'stamp-done': $('#stampwrap')?.remove(); state.tab = 'antar'; state.search = ''; return render();
+    case 'login': return doLogin();
+    case 'logout': if (!state.queue.length || confirm('Masih ada kiriman yang belum terkirim ke server. Tetap ganti kurir?')) logout(); return;
+    case 'flush': flushQueue().then(() => toast(state.queue.length ? 'Masih ada yang belum terkirim.' : 'Semua sudah terkirim.')); return;
+  }
+});
+document.addEventListener('input', e => {
+  if (e.target.id === 'q'){ state.search = e.target.value; renderCustList(); }
+});
+document.addEventListener('change', e => {
+  if (e.target.id === 'hdate' && e.target.value) loadHistory(e.target.value);
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && e.target.id === 'pin') doLogin();
+  if (e.key === 'Enter' && e.target.id === 'note') markDelivered();
+  if (e.key === 'Escape' && state.selected) closeSheet();
+});
+window.addEventListener('online', flushQueue);
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState !== 'visible') return;
+  const t = ymd(new Date());
+  if (t !== state.today){ state.today = t; state.todayList = []; loadToday(); }  // lewat tengah malam → tanggal ganti otomatis
+  flushQueue();
+});
+setInterval(() => { if (state.queue.length) flushQueue(); }, 30000);
+
+/* ====================== MULAI ====================== */
+(async function boot(){
+  if (!state.customers.length || !state.couriers.length) await loadInit(); else loadInit();
+  if (state.session){ state.screen = 'main'; render(); loadToday(); flushQueue(); }
+  else { state.screen = 'login'; render(); }
+})();
+
+/* ====================== MODE DEMO ======================
+   Hanya dipakai kalau API_URL belum diisi. Meniru perilaku Apps Script. */
+function demoApi(action, b){
+  const db = demoApi.db || (demoApi.db = {
+    couriers: [
+      { id:'K-01', nama:'Kurir Mobil 1', kendaraan:'Mobil', divisi:'Semua', pin:'1234' },
+      { id:'K-02', nama:'Kurir Mobil 2', kendaraan:'Mobil', divisi:'Semua', pin:'1234' },
+      { id:'K-03', nama:'Kurir Motor Kopi', kendaraan:'Motor', divisi:'Hungry Bird', pin:'1234' },
+      { id:'K-04', nama:'Kurir Motor Pastry', kendaraan:'Motor', divisi:'Lazy Hands', pin:'1234' }
+    ],
+    customers: ['12bArs Coffeeshop','A Bit More','Acai Shop','Bali de Uma','Bam Bam Padel Ubud','Capucine Bakery','Dawn Canggu','Doppio Cafe','Dulu Coffee Canggu','Flock Ubud','Goemerot Jimbaran','Hygge Coffee','Kabak Cafe','Little Ripper Bali']
+      .map((n,i) => ({ id:'C-'+String(i+1).padStart(3,'0'), nama:n, area:'', alamat:'', lat:null, lng:null })),
+    log: []
+  });
+  const wait = sleep(350);
+  const auth = () => { const k = db.couriers.find(c => c.id === b.kurirId); if (!k || k.pin !== String(b.pin)) { const e = new Error('PIN salah.'); e.server = true; throw e; } return k; };
+  return wait.then(() => {
+    if (action === 'init') return { ok:true, customers: db.customers, couriers: db.couriers.map(({pin, ...c}) => c) };
+    if (action === 'login'){ const k = auth(); return { ok:true, kurir:{ id:k.id, nama:k.nama } }; }
+    if (action === 'list'){ auth(); return { ok:true, entries: db.log.filter(e => e.kurirId === b.kurirId && e.tanggal === b.date) }; }
+    if (action === 'deliver'){
+      const k = auth(); const dup = db.log.find(e => e.uid === b.uid); if (dup) return { ok:true, entry:dup };
+      const c = db.customers.find(x => x.id === b.customerId);
+      let cek = 'Tanpa GPS';
+      if (b.lat != null){ if (c.lat == null && b.acc <= 100){ c.lat = b.lat; c.lng = b.lng; cek = 'Titik baru disimpan'; } else cek = 'Sesuai titik'; }
+      const entry = { uid:b.uid, tanggal:b.tanggal, jam:b.jam, kurirId:k.id, kurir:k.nama, customerId:c.id, customer:c.nama, catatan:b.catatan, cek, status:'Terkirim', serverTs:Date.now() };
+      db.log.push(entry); return { ok:true, entry };
+    }
+    if (action === 'cancel'){ auth(); const e = db.log.find(x => x.uid === b.uid); e.status = 'Dibatalkan'; return { ok:true, entry:e }; }
+  });
+}
+</script>
+</body>
+</html>
