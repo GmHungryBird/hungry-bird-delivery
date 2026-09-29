@@ -132,7 +132,7 @@ button,input{font:inherit;color:inherit}
   border-radius:14px;background:var(--card);cursor:pointer;text-align:left}
 .who-btn b{font-size:18px}
 .who-btn span{color:var(--muted);font-size:14px}
-.who-btn[aria-pressed="true"]{border-color:var(--roast-2)}
+.who-btn[aria-pressed="true"]{border-color:var(--roast-2);background:color-mix(in srgb,var(--roast-2) 14%,var(--card))}
 .pin{letter-spacing:8px;text-align:center;font-size:24px!important}
 .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
 .chip{border:2px solid var(--line);background:var(--card);border-radius:999px;padding:8px 14px;font-weight:600;cursor:pointer}
@@ -203,13 +203,23 @@ function toast(msg){
 /* ====================== API ====================== */
 async function api(action, body = {}){
   if (DEMO) return demoApi(action, body);
-  let res;
-  try{
-    // Content-Type text/plain (bawaan) supaya tidak kena CORS preflight di Apps Script
-    res = await fetch(API_URL, { method:'POST', body: JSON.stringify({ action, ...body }) });
-  }catch(e){ const err = new Error('Tidak ada sinyal / server tidak terjangkau.'); err.network = true; throw err; }
-  let data;
-  try{ data = await res.json(); }catch{ const err = new Error('Balasan server tidak terbaca.'); err.network = true; throw err; }
+  const payload = JSON.stringify({ action, ...body });
+  const call = async viaGet => {
+    let res;
+    try{
+      // POST dengan Content-Type text/plain (bawaan) supaya tidak kena CORS preflight di Apps Script
+      res = viaGet
+        ? await fetch(API_URL + '?q=' + encodeURIComponent(payload) + '&t=' + Date.now())
+        : await fetch(API_URL, { method:'POST', body: payload });
+    }catch(e){ const err = new Error('Tidak ada sinyal / server tidak terjangkau.'); err.network = true; throw err; }
+    try{ return await res.json(); }catch{ const err = new Error('Balasan server tidak terbaca.'); err.network = true; throw err; }
+  };
+  let data = await call(LS.get('hbd_viaget', false));
+  // Kalau yang menjawab justru halaman "ping" (POST berubah jadi GET di jalan), ulangi lewat jalur GET dan ingat pilihan ini
+  if (data && data.app === 'Hungry Bird Delivery' && data.serverTime){ LS.set('hbd_viaget', true); data = await call(true); }
+  if (data && data.app === 'Hungry Bird Delivery' && data.serverTime){
+    const err = new Error('Server belum versi terbaru. Minta admin deploy ulang Apps Script (Versi: Baru).'); err.server = true; throw err;
+  }
   if (!data.ok){ const err = new Error(data.error || 'Terjadi kesalahan.'); err.server = true; throw err; }
   return data;
 }
@@ -219,6 +229,8 @@ const state = {
   screen: 'boot', tab: 'antar',
   customers: LS.get('hbd_customers', []),
   couriers: LS.get('hbd_couriers', []),
+  drivers: LS.get('hbd_drivers', []),      // daftar supir resmi dari tab Supir
+  pickSupir: null, pickDua: null,
   session: LS.get('hbd_session', null),     // {kurirId, nama, pin}
   queue: LS.get('hbd_queue', []),           // kiriman & istirahat yang belum sampai server
   brk: LS.get('hbd_break', { date: null, used: {}, active: null }), // used: menit per nama (huruf kecil)
@@ -285,8 +297,8 @@ function updateGps(){
 async function loadInit(){
   try{
     const d = await api('init');
-    state.customers = d.customers; state.couriers = d.couriers;
-    LS.set('hbd_customers', d.customers); LS.set('hbd_couriers', d.couriers);
+    state.customers = d.customers; state.couriers = d.couriers; state.drivers = d.drivers || [];
+    LS.set('hbd_customers', d.customers); LS.set('hbd_couriers', d.couriers); LS.set('hbd_drivers', state.drivers);
     // Data kurir terbaru bisa mengubah aturan (mis. Supir Manual baru diaktifkan) → cek ulang layar
     if (state.session){
       if (!state.couriers.some(c => c.id === state.session.kurirId)) return logout('Akun kurir tidak aktif lagi. Pilih ulang.');
@@ -426,8 +438,10 @@ async function doLogin(){
 }
 function saveSupir(){
   const clean = v => String(v || '').trim().replace(/\s+/g, ' ');
-  const name = clean($('#supir')?.value), dua = clean($('#pendamping')?.value);
-  if (name.length < 2){ state.loginErr = 'Tulis nama supir dulu.'; return render(); }
+  const byList = state.drivers.length > 0;
+  const name = byList ? (state.pickSupir || '') : clean($('#supir')?.value);
+  const dua = byList ? (state.pickDua || '') : clean($('#pendamping')?.value);
+  if (name.length < 2){ state.loginErr = byList ? 'Pilih nama supir dulu.' : 'Tulis nama supir dulu.'; return render(); }
   if (dua && dua.toLowerCase() === name.toLowerCase()){ state.loginErr = 'Nama supir dan pendamping tidak boleh sama.'; return render(); }
   if (state.brk.active){ state.loginErr = 'Selesaikan istirahat dulu sebelum ganti kru.'; return render(); }
   state.session.supir = name; state.session.pendamping = dua; state.session.supirDate = state.today;
@@ -435,12 +449,12 @@ function saveSupir(){
   let recent = LS.get('hbd_supir_names', []);
   for (const n of [dua, name].filter(Boolean)) recent = [n, ...recent.filter(x => x.toLowerCase() !== n.toLowerCase())];
   LS.set('hbd_supir_names', recent.slice(0, 10));
-  state.loginErr = ''; state.screen = 'main'; state.tab = 'antar';
+  state.loginErr = ''; state.screen = 'main'; state.tab = 'antar'; state.pickSupir = null; state.pickDua = null;
   render(); loadToday(); flushQueue();
 }
 function logout(msg){
   state.session = null; LS.del('hbd_session'); LS.del('hbd_today'); LS.del('hbd_break'); state.brk = { date: null, used: {}, active: null };
-  state.todayList = []; state.screen = 'login'; state.pickCourier = null; state.loginErr = msg || '';
+  state.todayList = []; state.screen = 'login'; state.pickCourier = null; state.pickSupir = null; state.pickDua = null; state.loginErr = msg || '';
   render();
 }
 
@@ -495,6 +509,28 @@ function supirHTML(){
   const same = state.session.supirDate === state.today;
   const cur = same ? state.session.supir : '', cur2 = same ? (state.session.pendamping || '') : '';
   const recent = LS.get('hbd_supir_names', []);
+  if (state.drivers.length){
+    if (state.pickSupir === null){ state.pickSupir = cur; state.pickDua = cur2; }
+    const names = state.drivers.map(d => d.nama);
+    const btn = (n, attr, on, label) => `<button class="who-btn" ${attr}="${esc(n)}" aria-pressed="${on}"><b>${esc(label || n)}</b>${on ? '<span>✓ Dipilih</span>' : ''}</button>`;
+    return `<div class="login">
+      <span class="logo" role="img" aria-label="Hungry Bird" style="width:72px;margin-bottom:16px"></span>
+      <div class="brand">${esc(state.session.nama)}</div>
+      <div class="brand-sub">${esc(shortDate(state.today))}. Siapa yang mengantar hari ini?</div>
+      <div class="field"><label>Supir</label></div>
+      <div class="who-list" style="margin-top:0">${names.map(n => btn(n, 'data-pick-supir', n === state.pickSupir)).join('')}</div>
+      <div class="field"><label>Pendamping <span style="font-weight:400;color:var(--muted)">(kalau berdua)</span></label></div>
+      <div class="who-list" style="margin-top:0">
+        ${btn('', 'data-pick-dua', !state.pickDua, 'Tidak ada, sendiri')}
+        ${names.filter(n => n !== state.pickSupir).map(n => btn(n, 'data-pick-dua', n === state.pickDua)).join('')}
+      </div>
+      <button class="primary" data-act="supir-save">Mulai antar</button>
+      ${cur ? `<button class="ghost" data-act="supir-cancel">Batal, tetap ${esc([cur, cur2].filter(Boolean).join(' & '))}</button>` : ''}
+      <button class="ghost" data-act="logout">Bukan ${esc(state.session.nama)}? Ganti kurir</button>
+      <div class="n" style="margin-top:8px;color:var(--muted);font-size:14px;text-align:center">Nama tidak ada? Minta admin menambahkannya di tab Supir.</div>
+      ${state.loginErr ? `<div class="err" role="alert">${esc(state.loginErr)}</div>` : ''}
+    </div>`;
+  }
   return `<div class="login">
     <span class="logo" role="img" aria-label="Hungry Bird" style="width:72px;margin-bottom:16px"></span>
     <div class="brand">${esc(state.session.nama)}</div>
@@ -776,7 +812,7 @@ setInterval(() => { breakTick(); if (!state.brk.active && document.title !== 'Hu
 
 /* ====================== EVENT ====================== */
 document.addEventListener('click', e => {
-  const t = e.target.closest('[data-act],[data-tab],[data-cust],[data-courier],[data-cancel],[data-drop],[data-supirname],[data-penerima]');
+  const t = e.target.closest('[data-act],[data-tab],[data-cust],[data-courier],[data-cancel],[data-drop],[data-supirname],[data-penerima],[data-pick-supir],[data-pick-dua]');
   if (!t) return;
   if (t.dataset.tab){
     state.tab = t.dataset.tab; render();
@@ -786,6 +822,11 @@ document.addEventListener('click', e => {
   }
   if (t.dataset.cust){ const c = state.customers.find(x => x.id === t.dataset.cust); if (c) openSheet(c); return; }
   if (t.dataset.courier){ state.pickCourier = state.couriers.find(x => x.id === t.dataset.courier); state.loginErr=''; render(); setTimeout(()=>$('#pin')?.focus(), 30); return; }
+  if (t.dataset.pickSupir !== undefined){
+    state.pickSupir = t.dataset.pickSupir; if (state.pickDua === state.pickSupir) state.pickDua = '';
+    state.loginErr = ''; const y = window.scrollY; render(); window.scrollTo(0, y); return;
+  }
+  if (t.dataset.pickDua !== undefined){ state.pickDua = t.dataset.pickDua; state.loginErr = ''; const y = window.scrollY; render(); window.scrollTo(0, y); return; }
   if (t.dataset.supirname){
     const a = $('#supir'), b2 = $('#pendamping'), n = t.dataset.supirname;
     const target = !a.value.trim() ? a : (!b2.value.trim() && a.value.trim().toLowerCase() !== n.toLowerCase()) ? b2 : null;
@@ -800,13 +841,13 @@ document.addEventListener('click', e => {
     case 'deliver': return markDelivered();
     case 'stamp-done': $('#stampwrap')?.remove(); state.tab = 'antar'; state.search = ''; return render();
     case 'login': return doLogin();
-    case 'supir': state.loginErr = ''; state.screen = 'supir'; return render();
+    case 'supir': state.loginErr = ''; state.pickSupir = null; state.pickDua = null; state.screen = 'supir'; return render();
     case 'break-open': return openBreakSheet();
     case 'break-close': return $('#brksheet')?.remove();
     case 'break-start': return startBreak();
     case 'break-end': return endBreak();
     case 'supir-save': return saveSupir();
-    case 'supir-cancel': state.screen = 'main'; return render();
+    case 'supir-cancel': state.pickSupir = null; state.pickDua = null; state.screen = 'main'; return render();
     case 'logout': if (state.brk.active) return toast('Selesaikan istirahat dulu sebelum ganti kurir.');
       if (!state.queue.length || confirm('Masih ada kiriman yang belum terkirim ke server. Tetap ganti kurir?')) logout(); return;
     case 'flush': flushQueue().then(() => toast(state.queue.length ? 'Masih ada yang belum terkirim.' : 'Semua sudah terkirim.')); return;
@@ -855,12 +896,13 @@ function demoApi(action, b){
     ],
     customers: ['12bArs Coffeeshop','A Bit More','Acai Shop','Bali de Uma','Bam Bam Padel Ubud','Capucine Bakery','Dawn Canggu','Doppio Cafe','Dulu Coffee Canggu','Flock Ubud','Goemerot Jimbaran','Hygge Coffee','Kabak Cafe','Little Ripper Bali']
       .map((n,i) => ({ id:'C-'+String(i+1).padStart(3,'0'), nama:n, area:'', alamat:'', lat:null, lng:null })),
+    drivers: [{id:'S-01',nama:'Aldo'},{id:'S-02',nama:'Bram'},{id:'S-03',nama:'Fathur'},{id:'S-04',nama:'Wirya'}],
     log: [], breaks: []
   });
   const wait = sleep(350);
   const auth = () => { const k = db.couriers.find(c => c.id === b.kurirId); if (!k || k.pin !== String(b.pin)) { const e = new Error('PIN salah.'); e.server = true; throw e; } return k; };
   return wait.then(() => {
-    if (action === 'init') return { ok:true, customers: db.customers, couriers: db.couriers.map(({pin, ...c}) => c) };
+    if (action === 'init') return { ok:true, drivers: db.drivers, customers: db.customers, couriers: db.couriers.map(({pin, ...c}) => c) };
     if (action === 'login'){ const k = auth(); return { ok:true, kurir:{ id:k.id, nama:k.nama } }; }
     const info = (k, date) => {
       const used = {}; let active = null;
