@@ -159,6 +159,18 @@ button,input{font:inherit;color:inherit}
 .breakview .sub{font-size:17px}
 .breakview .names{margin-top:20px;display:grid;gap:4px;font-size:16px;color:var(--muted)}
 .breakview .primary{max-width:360px}
+.linkish{background:none;border:0;padding:0;margin-top:4px;color:var(--stamp);font-size:14px;text-decoration:underline;cursor:pointer}
+.breakbar.due{background:var(--warn-bg)} .breakbar.due .bl b{color:var(--warn)}
+.opt{display:flex;gap:10px;align-items:flex-start;padding:10px 0;font-size:16px;cursor:pointer}
+.opt input{width:22px;height:22px;margin-top:2px;accent-color:var(--roast);flex:none}
+.person{border:2px solid var(--line);border-radius:14px;padding:12px 14px;margin-top:12px}
+.person h3{margin:0 0 4px;font-size:18px}
+.person .meta{color:var(--muted);font-size:14px}
+.person select,.person input[type=number],.sheet select,.sheet input[type=text].wide{width:100%;height:46px;border:2px solid var(--line);border-radius:10px;background:var(--paper);padding:0 10px;font-size:16px;margin-top:6px}
+.closeday{padding:18px 16px 28px}
+.closeday .primary{margin-top:8px}
+.closed{padding:18px 16px;color:var(--muted);text-align:center}
+.sheet{max-height:92vh;overflow-y:auto}
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:40;
   background:var(--ink);color:var(--paper);padding:12px 18px;border-radius:12px;font-size:15px;max-width:calc(100% - 32px)}
 .spinner{padding:60px;text-align:center;color:var(--muted)}
@@ -246,7 +258,7 @@ const crew = () => me()?.supirManual ? [state.session.supir, state.session.penda
 const crewLabel = () => crew().join(' & ');
 const JATAH = 60;
 const saveBrk = () => LS.set('hbd_break', state.brk);
-function brkReset(){ if (state.brk.date !== state.today){ state.brk = { date: state.today, used: {}, active: null }; saveBrk(); } }
+function brkReset(){ if (state.brk.date !== state.today){ state.brk = { date: state.today, used: {}, active: null, claims: {} }; saveBrk(); } }
 function mergeBreaks(b){
   if (!b) return;
   brkReset();
@@ -255,6 +267,7 @@ function mergeBreaks(b){
   const pendingEnd = state.queue.some(q => q.action === 'breakEnd');
   if (b.active && !state.brk.active && !pendingEnd) state.brk.active = { ...b.active, alerted: [] };  // istirahat dimulai dari HP lain
   if (!b.active && state.brk.active && !pendingStart) state.brk.active = null;                       // sudah ditutup di server
+  state.brk.claims = { ...(state.brk.claims || {}), ...(b.claims || {}) };
   saveBrk();
 }
 const onBreak = n => !!state.brk.active?.names.some(x => x.toLowerCase() === n.toLowerCase());
@@ -264,6 +277,16 @@ function remainingSec(n){
   if (onBreak(n)) r -= Math.floor((Date.now() - state.brk.active.startAt) / 1000);
   return r;
 }
+const PENGINGAT_JAM = 4;   // ingatkan istirahat setelah 4 jam sejak kiriman pertama
+const ALASAN = ['Order menumpuk', 'Antar jarak jauh', 'Diminta atasan', 'Lainnya'];
+const claimOf = n => (state.brk.claims || {})[n.toLowerCase()];
+const closedToday = () => { const c = LS.get('hbd_closed', null); return c && c.date === state.today && c.kurirId === state.session?.kurirId ? c : null; };
+function workHours(){
+  const first = todayMerged().filter(e => e.status !== 'Dibatalkan')[0];
+  if (!first) return 0;
+  return (Date.now() - new Date(state.today + 'T' + first.jam + '+08:00').getTime()) / 3600000;
+}
+const dueNames = () => (state.brk.active || closedToday() || workHours() < PENGINGAT_JAM) ? [] : crew().filter(n => usedMin(n) === 0 && !claimOf(n));
 const fmtClock = sec => { const a = Math.abs(sec); return (sec < 0 ? '+' : '') + Math.floor(a/60) + ':' + String(a%60).padStart(2,'0'); };
 const fmtMin = sec => sec >= 0 ? `sisa ${Math.floor(sec/60)} mnt` : `lewat ${Math.ceil(-sec/60)} mnt`;
 
@@ -324,10 +347,11 @@ async function loadToday(){
   if (state.screen === 'main') render();
 }
 
-let flushing = false;
+let flushing = false, flushAgain = false;
 async function flushQueue(){
-  if (flushing || !state.queue.length || !state.session) return;
-  flushing = true;
+  if (flushing){ flushAgain = true; return; }
+  if (!state.queue.length || !state.session) return;
+  flushing = true; flushAgain = false;
   try{
     for (const q of [...state.queue]){
       try{
@@ -344,6 +368,7 @@ async function flushQueue(){
       saveQueue();
     }
   } finally { flushing = false; }
+  if (flushAgain && state.queue.length) return flushQueue();   // ada item baru masuk saat sedang mengirim
   state.todayList.sort((a,b) => a.jam.localeCompare(b.jam));
   LS.set('hbd_today', { date: state.today, entries: state.todayList });
   if (state.screen === 'main' && !state.selected && !$('#brksheet')) render();
@@ -453,7 +478,7 @@ function saveSupir(){
   render(); loadToday(); flushQueue();
 }
 function logout(msg){
-  state.session = null; LS.del('hbd_session'); LS.del('hbd_today'); LS.del('hbd_break'); state.brk = { date: null, used: {}, active: null };
+  state.session = null; LS.del('hbd_session'); LS.del('hbd_today'); LS.del('hbd_break'); LS.del('hbd_closed'); LS.del('hbd_remind'); state.brk = { date: null, used: {}, active: null, claims: {} };
   state.todayList = []; state.screen = 'login'; state.pickCourier = null; state.pickSupir = null; state.pickDua = null; state.loginErr = msg || '';
   render();
 }
@@ -599,7 +624,10 @@ function hariHTML(){
   const n = list.filter(e => e.status !== 'Dibatalkan').length;
   return `<div class="list-head"><b>${n} kiriman hari ini</b>
       ${state.queue.length ? `<button class="smallbtn" data-act="flush" style="color:var(--ink)">Kirim ulang</button>` : ''}</div>
-    ${list.length ? list.map(e => entryHTML(e, true)).join('') : `<div class="empty">Belum ada kiriman hari ini. Buka tab Antar dan pilih customer setelah pesanan diterima.</div>`}`;
+    ${list.length ? list.map(e => entryHTML(e, true)).join('') : `<div class="empty">Belum ada kiriman hari ini. Buka tab Antar dan pilih customer setelah pesanan diterima.</div>`}
+    ${closedToday() ? `<div class="closed">Hari ini ditutup pukul ${esc(closedToday().jam)}. <button class="linkish" data-act="close-open">Ubah</button></div>`
+      : `<div class="closeday"><div class="n" style="color:var(--muted);font-size:14px">Sudah selesai bertugas hari ini?</div>
+        <button class="primary" data-act="close-open">Selesai hari ini</button></div>`}`;
 }
 
 function riwayatHTML(){
@@ -689,8 +717,14 @@ function renderBreak(){
       <button class="bbtn solid" data-act="break-end">Selesai</button>`;
     return;
   }
-  bar.className = 'breakbar';
-  bar.innerHTML = `<div class="bl">Istirahat hari ini<br><b>${names.map(n => (names.length > 1 ? esc(n) + ' ' : '') + esc(fmtMin(remainingSec(n)))).join(', ')}</b></div>
+  const due = dueNames();
+  const claimed = names.filter(n => claimOf(n)?.jenis === 'Tidak sempat');
+  const canClaim = !closedToday() && names.some(n => remainingSec(n) > 0 && !['Disetujui','Ditolak'].includes(claimOf(n)?.status));
+  bar.className = 'breakbar' + (due.length ? ' due' : '');
+  bar.innerHTML = `<div class="bl">${due.length ? `Belum istirahat, sudah ${Math.floor(workHours())} jam sejak kiriman pertama` : 'Istirahat hari ini'}<br>
+      <b>${names.map(n => (names.length > 1 ? esc(n) + ' ' : '') + esc(fmtMin(remainingSec(n)))).join(', ')}</b>
+      ${claimed.length ? `<br>Klaim tidak sempat istirahat: ${esc(claimed.map(n => n + ' (' + (claimOf(n).status || 'menunggu') + ')').join(', '))}` : ''}
+      ${canClaim ? `<br><button class="linkish" data-act="nobreak-open">Tidak bisa istirahat?</button>` : ''}</div>
     <button class="bbtn" data-act="break-open">Istirahat</button>`;
 }
 
@@ -713,6 +747,128 @@ function openBreakSheet(){
     </section>`;
   document.body.appendChild(div);
 }
+
+/* ---------- Tidak bisa istirahat (dilaporkan saat itu juga) ---------- */
+function reasonFields(prefix, cur){
+  const val = cur && ALASAN.includes(cur) ? cur : (cur ? 'Lainnya' : '');
+  return `<select id="${prefix}-sel" aria-label="Alasan">
+      <option value="">Pilih alasan…</option>${ALASAN.map(a => `<option ${a === val ? 'selected' : ''}>${a}</option>`).join('')}</select>
+    <input type="text" class="wide" id="${prefix}-txt" maxlength="150" placeholder="Tulis alasannya" value="${esc(val === 'Lainnya' ? cur : '')}" style="${val === 'Lainnya' ? '' : 'display:none'}">`;
+}
+function readReason(prefix){
+  const sel = $('#' + prefix + '-sel')?.value || '';
+  const txt = ($('#' + prefix + '-txt')?.value || '').trim();
+  return sel === 'Lainnya' ? txt : sel;
+}
+function openNoBreak(){
+  if (needSupir()){ state.screen = 'supir'; return render(); }
+  const names = crew().filter(n => remainingSec(n) > 0 && !['Disetujui','Ditolak'].includes(claimOf(n)?.status));
+  const div = document.createElement('div'); div.id = 'brksheet';
+  div.innerHTML = `<div class="scrim" data-act="break-close"></div>
+    <section class="sheet" role="dialog" aria-modal="true" aria-labelledby="nb-t">
+      <h2 id="nb-t">Tidak bisa istirahat</h2>
+      <div class="addr">Laporan ini dikirim ke supervisor untuk disetujui sebagai lembur. Hanya berlaku untuk hari ini.</div>
+      <div style="margin-top:10px">${names.map(n => `
+        <label class="check"><input type="checkbox" name="nb" value="${esc(n)}" checked ${names.length === 1 ? 'disabled' : ''}>
+          <span>${esc(n)}</span><span class="rest">${esc(fmtMin(remainingSec(n)))}</span></label>`).join('')}</div>
+      <div class="field"><label for="nb-sel">Alasan</label>${reasonFields('nb', claimOf(names[0] || '')?.alasan)}</div>
+      <div class="addr" style="margin-top:10px">Kalau nanti ternyata sempat, tetap tekan <b>Istirahat</b>. Menit klaim akan dikurangi otomatis.</div>
+      <button class="primary" data-act="nobreak-send">Kirim laporan</button>
+      <button class="ghost" data-act="break-close">Batal</button>
+    </section>`;
+  document.body.appendChild(div);
+}
+function sendNoBreak(){
+  const names = [...document.querySelectorAll('input[name=nb]')].filter(x => x.checked).map(x => x.value);
+  const alasan = readReason('nb');
+  if (!names.length) return toast('Pilih siapa yang tidak bisa istirahat.');
+  if (alasan.length < 3) return toast('Pilih atau tulis alasannya dulu.');
+  queueClaim('Tidak sempat', names.map(n => ({ nama: n, alasan })));
+  $('#brksheet')?.remove();
+  toast('Laporan terkirim ke supervisor.');
+  render();
+}
+function queueClaim(jenis, items){
+  const now = new Date();
+  state.queue.push({ qid: uuid(), action: 'claim', kurirId: state.session.kurirId, jenis, items, at: now.toISOString(), tanggal: ymd(now) });
+  saveQueue();
+  state.brk.claims = state.brk.claims || {};
+  for (const it of items){
+    state.brk.claims[it.nama.toLowerCase()] = { jenis, status: jenis === 'Tidak sempat' ? 'Menunggu persetujuan' : 'Tercatat', diajukan: hms(now).slice(0,5), alasan: it.alasan || '' };
+    if (jenis === 'Lupa catat') state.brk.used[it.nama.toLowerCase()] = usedMin(it.nama) + (+it.perkiraan || 0);
+  }
+  saveBrk();
+  flushQueue();
+}
+
+/* ---------- Selesai hari ini (tutup hari) ---------- */
+function openCloseDay(){
+  if (state.brk.active) return toast('Selesaikan istirahat dulu.');
+  if (needSupir()){ state.screen = 'supir'; return render(); }
+  const people = crew().map(n => ({ n, rest: Math.max(0, Math.ceil(remainingSec(n) / 60)), c: claimOf(n) }));
+  const div = document.createElement('div'); div.id = 'brksheet';
+  div.innerHTML = `<div class="scrim" data-act="break-close"></div>
+    <section class="sheet" role="dialog" aria-modal="true" aria-labelledby="cd-t">
+      <h2 id="cd-t">Selesai hari ini</h2>
+      <div class="addr">${esc(longDate(state.today))}. Cek istirahat sebelum pulang.</div>
+      ${people.map((p, i) => {
+        const locked = ['Disetujui','Ditolak'].includes(p.c?.status);
+        if (p.rest <= 0) return `<div class="person"><h3>${esc(p.n)}</h3><div class="meta">Istirahat lengkap ${JATAH} menit ✓</div></div>`;
+        if (locked) return `<div class="person"><h3>${esc(p.n)}</h3><div class="meta">Klaim sudah ${esc(p.c.status.toLowerCase())} supervisor.</div></div>`;
+        const pre = p.c?.jenis === 'Tidak sempat' ? 'ts' : p.c?.jenis === 'Lupa catat' ? 'lupa' : '';
+        return `<div class="person" data-person="${esc(p.n)}" data-rest="${p.rest}">
+          <h3>${esc(p.n)}</h3>
+          <div class="meta">Istirahat tercatat ${usedMin(p.n)} dari ${JATAH} menit.</div>
+          <label class="opt"><input type="radio" name="cd-${i}" value="ts" ${pre === 'ts' ? 'checked' : ''}>
+            <span>Tidak sempat istirahat<br><span class="meta">Ajukan klaim ${p.rest} menit ke supervisor</span></span></label>
+          <div class="cd-ts" style="${pre === 'ts' ? '' : 'display:none'}">${reasonFields('cd' + i, p.c?.jenis === 'Tidak sempat' ? p.c.alasan : '')}</div>
+          <label class="opt"><input type="radio" name="cd-${i}" value="lupa" ${pre === 'lupa' ? 'checked' : ''}>
+            <span>Sebenarnya istirahat, lupa mencatat<br><span class="meta">Tidak bisa diajukan sebagai lembur</span></span></label>
+          <div class="cd-lupa" style="${pre === 'lupa' ? '' : 'display:none'}"><input type="number" id="cd${i}-min" min="1" max="${p.rest}" inputmode="numeric" placeholder="Perkiraan berapa menit?"></div>
+          <label class="opt"><input type="radio" name="cd-${i}" value="ok"><span>Tidak ada klaim</span></label>
+        </div>`;
+      }).join('')}
+      <button class="primary" data-act="close-send">Selesai hari ini</button>
+      <button class="ghost" data-act="break-close">Batal</button>
+    </section>`;
+  document.body.appendChild(div);
+}
+function sendCloseDay(){
+  const ts = [], lupa = [];
+  for (const [i, el] of [...document.querySelectorAll('.person[data-person]')].entries()){
+    const n = el.dataset.person, idx = el.querySelector('input[type=radio]').name.slice(3);
+    const pick = el.querySelector('input[type=radio]:checked')?.value;
+    if (!pick) return toast(`Pilih salah satu untuk ${n}.`);
+    if (pick === 'ts'){
+      const alasan = readReason('cd' + idx);
+      if (alasan.length < 3) return toast(`Tulis alasan tidak sempat istirahat untuk ${n}.`);
+      ts.push({ nama: n, alasan });
+    }
+    if (pick === 'lupa'){
+      const m = parseInt($('#cd' + idx + '-min')?.value, 10);
+      if (!m || m < 1) return toast(`Isi perkiraan menit istirahat ${n}.`);
+      lupa.push({ nama: n, perkiraan: Math.min(m, +el.dataset.rest) });
+    }
+  }
+  if (ts.length) queueClaim('Tidak sempat', ts);
+  if (lupa.length) queueClaim('Lupa catat', lupa);
+  LS.set('hbd_closed', { date: state.today, kurirId: state.session.kurirId, jam: hms(new Date()).slice(0,5) });
+  $('#brksheet')?.remove();
+  toast(ts.length ? 'Hari ini ditutup. Klaim dikirim ke supervisor.' : 'Hari ini ditutup. Terima kasih!');
+  render();
+}
+
+/* ---------- Pengingat istirahat ---------- */
+function reminderCheck(){
+  if (!state.session || state.screen !== 'main') return;
+  const due = dueNames(); if (!due.length) return;
+  const r = LS.get('hbd_remind', {});
+  if (r.date === state.today && Date.now() - r.last < 3600000) return;
+  LS.set('hbd_remind', { date: state.today, last: Date.now() });
+  notify('Belum istirahat', `${due.join(' & ')} sudah ${Math.floor(workHours())} jam bekerja sejak kiriman pertama. Istirahat dulu, atau tekan "Tidak bisa istirahat".`);
+  renderBreak();
+}
+setInterval(reminderCheck, 30000);
 
 let audioCtx = null;
 async function startBreak(){
@@ -846,6 +1002,10 @@ document.addEventListener('click', e => {
     case 'break-close': return $('#brksheet')?.remove();
     case 'break-start': return startBreak();
     case 'break-end': return endBreak();
+    case 'nobreak-open': return openNoBreak();
+    case 'nobreak-send': return sendNoBreak();
+    case 'close-open': return openCloseDay();
+    case 'close-send': return sendCloseDay();
     case 'supir-save': return saveSupir();
     case 'supir-cancel': state.pickSupir = null; state.pickDua = null; state.screen = 'main'; return render();
     case 'logout': if (state.brk.active) return toast('Selesaikan istirahat dulu sebelum ganti kurir.');
@@ -858,6 +1018,12 @@ document.addEventListener('input', e => {
   if (e.target.id === 'penerima' && e.target.value.trim()){ $('#f-penerima')?.classList.remove('bad'); $('#f-penerima .hint')?.remove(); }
 });
 document.addEventListener('change', e => {
+  if (e.target.matches('select[id$="-sel"]')){ const t = $('#' + e.target.id.replace('-sel', '-txt')); if (t){ t.style.display = e.target.value === 'Lainnya' ? '' : 'none'; if (e.target.value === 'Lainnya') t.focus(); } }
+  if (e.target.matches('.person input[type=radio]')){
+    const p = e.target.closest('.person');
+    p.querySelector('.cd-ts').style.display = e.target.value === 'ts' ? '' : 'none';
+    p.querySelector('.cd-lupa').style.display = e.target.value === 'lupa' ? '' : 'none';
+  }
   if (e.target.id === 'hdate' && e.target.value) loadHistory(e.target.value);
 });
 document.addEventListener('keydown', e => {
@@ -916,6 +1082,10 @@ function demoApi(action, b){
     if (action === 'breakStart'){ const k = auth(); const t = new Date(b.startAt);
       if (!db.breaks.some(r => r.uid === b.uid)) b.names.forEach(n => db.breaks.push({ uid:b.uid, tanggal:ymd(t), kurirId:k.id, nama:n, startAt:t.getTime(), status:'Berjalan', durasi:0 }));
       return { ok:true, breaks: info(k, ymd(t)) }; }
+    if (action === 'claim'){ const k = auth(); db.claims = db.claims || {};
+      b.items.forEach(it => { if (b.jenis === 'Lupa catat') db.breaks.push({ uid:'LUPA', tanggal:b.tanggal, kurirId:k.id, nama:it.nama, startAt:0, status:'Selesai', durasi:+it.perkiraan });
+        db.claims[it.nama.toLowerCase()] = { jenis:b.jenis, status: b.jenis === 'Lupa catat' ? 'Tercatat' : 'Menunggu persetujuan', alasan: it.alasan || '' }; });
+      const inf = info(k, b.tanggal); inf.claims = db.claims; return { ok:true, breaks: inf }; }
     if (action === 'breakEnd'){ const k = auth(); const end = new Date(b.endAt).getTime(); let tgl = ymd(new Date(end));
       db.breaks.filter(r => r.uid === b.uid && r.status === 'Berjalan').forEach(r => { r.status = 'Selesai'; r.durasi = Math.max(1, Math.ceil((end - r.startAt)/60000)); tgl = r.tanggal; });
       return { ok:true, breaks: info(k, tgl) }; }
