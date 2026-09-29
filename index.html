@@ -284,6 +284,12 @@ async function loadInit(){
     const d = await api('init');
     state.customers = d.customers; state.couriers = d.couriers;
     LS.set('hbd_customers', d.customers); LS.set('hbd_couriers', d.couriers);
+    // Data kurir terbaru bisa mengubah aturan (mis. Supir Manual baru diaktifkan) → cek ulang layar
+    if (state.session){
+      if (!state.couriers.some(c => c.id === state.session.kurirId)) return logout('Akun kurir tidak aktif lagi. Pilih ulang.');
+      if (state.screen === 'main' && needSupir()){ closeSheet(); state.screen = 'supir'; }
+      if (state.screen === 'main' || state.screen === 'supir') render();
+    } else if (state.screen === 'login') render();
   }catch(e){
     if (!state.customers.length) toast('Gagal memuat data: ' + e.message);
   }
@@ -680,7 +686,7 @@ async function startBreak(){
 function endBreak(){
   const a = state.brk.active; if (!a) return;
   const now = Date.now();
-  const mins = Math.max(0, Math.round((now - a.startAt) / 60000));
+  const mins = Math.max(1, Math.ceil((now - a.startAt) / 60000));   // sama dengan server: per menit, dibulatkan ke atas
   for (const n of a.names) state.brk.used[n.toLowerCase()] = usedMin(n) + mins;
   state.brk.active = null; saveBrk();
   state.queue.push({ qid: uuid(), action: 'breakEnd', uid: a.uid, kurirId: state.session.kurirId, endAt: new Date(now).toISOString() });
@@ -848,7 +854,7 @@ function demoApi(action, b){
       if (!db.breaks.some(r => r.uid === b.uid)) b.names.forEach(n => db.breaks.push({ uid:b.uid, tanggal:ymd(t), kurirId:k.id, nama:n, startAt:t.getTime(), status:'Berjalan', durasi:0 }));
       return { ok:true, breaks: info(k, ymd(t)) }; }
     if (action === 'breakEnd'){ const k = auth(); const end = new Date(b.endAt).getTime(); let tgl = ymd(new Date(end));
-      db.breaks.filter(r => r.uid === b.uid && r.status === 'Berjalan').forEach(r => { r.status = 'Selesai'; r.durasi = Math.round((end - r.startAt)/60000); tgl = r.tanggal; });
+      db.breaks.filter(r => r.uid === b.uid && r.status === 'Berjalan').forEach(r => { r.status = 'Selesai'; r.durasi = Math.max(1, Math.ceil((end - r.startAt)/60000)); tgl = r.tanggal; });
       return { ok:true, breaks: info(k, tgl) }; }
     if (action === 'deliver'){
       const k = auth(); const dup = db.log.find(e => e.uid === b.uid); if (dup) return { ok:true, entry:dup };
