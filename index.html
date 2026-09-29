@@ -135,6 +135,27 @@ button,input{font:inherit;color:inherit}
 .chip{border:2px solid var(--line);background:var(--card);border-radius:999px;padding:8px 14px;font-weight:600;cursor:pointer}
 .err{color:var(--danger);margin-top:10px;font-weight:600}
 
+/* Istirahat */
+.breakbar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 16px;background:var(--card);border-bottom:1px solid var(--line)}
+.breakbar .bl{font-size:14px;color:var(--muted);line-height:1.3}
+.breakbar .bl b{color:var(--ink);font-size:15px}
+.breakbar.on{background:var(--warn-bg)}
+.breakbar.on .bl b{color:var(--warn)}
+.breakbar.over{background:var(--danger-bg)}
+.breakbar.over .bl b{color:var(--danger)}
+.bbtn{flex:none;border:2px solid var(--roast-2);background:none;color:var(--roast-2);border-radius:10px;padding:8px 14px;font-weight:700;cursor:pointer}
+.bbtn.solid{background:var(--roast);border-color:var(--roast);color:#fff}
+.check{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line);font-size:17px;cursor:pointer}
+.check input{width:24px;height:24px;accent-color:var(--roast)}
+.check .rest{margin-left:auto;color:var(--muted);font-size:14px}
+.breakview{position:fixed;inset:0;z-index:25;background:var(--paper);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
+  padding:calc(24px + env(safe-area-inset-top,0px)) 24px calc(24px + env(safe-area-inset-bottom,0px))}
+.breakview .lbl{font-size:18px;color:var(--muted)}
+.breakview .clock{font-family:var(--cond);font-weight:800;font-size:96px;line-height:1;margin:8px 0 4px;font-variant-numeric:tabular-nums}
+.breakview .clock.warn{color:var(--warn)} .breakview .clock.over{color:var(--danger)}
+.breakview .sub{font-size:17px}
+.breakview .names{margin-top:20px;display:grid;gap:4px;font-size:16px;color:var(--muted)}
+.breakview .primary{max-width:360px}
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:40;
   background:var(--ink);color:var(--paper);padding:12px 18px;border-radius:12px;font-size:15px;max-width:calc(100% - 32px)}
 .spinner{padding:60px;text-align:center;color:var(--muted)}
@@ -171,6 +192,7 @@ const uuid = () => (crypto.randomUUID ? crypto.randomUUID() : 'x'+Date.now().toS
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 function toast(msg){
+  document.querySelectorAll('.toast').forEach(x => x.remove());
   const t = document.createElement('div'); t.className='toast'; t.setAttribute('role','status'); t.textContent = msg;
   document.body.appendChild(t); setTimeout(() => t.remove(), 3200);
 }
@@ -195,7 +217,8 @@ const state = {
   customers: LS.get('hbd_customers', []),
   couriers: LS.get('hbd_couriers', []),
   session: LS.get('hbd_session', null),     // {kurirId, nama, pin}
-  queue: LS.get('hbd_queue', []),           // kiriman yang belum sampai server
+  queue: LS.get('hbd_queue', []),           // kiriman & istirahat yang belum sampai server
+  brk: LS.get('hbd_break', { date: null, used: {}, active: null }), // used: menit per nama (huruf kecil)
   today: ymd(new Date()),
   todayList: [], histDate: null, histList: [], histLoading: false,
   search: '', selected: null, pickCourier: null, loginErr: ''
@@ -204,6 +227,30 @@ const saveQueue = () => LS.set('hbd_queue', state.queue);
 const me = () => state.couriers.find(c => c.id === state.session?.kurirId);
 const needSupir = () => !!me()?.supirManual && !(state.session.supir && state.session.supirDate === state.today);
 const afterAuthScreen = () => needSupir() ? 'supir' : 'main';
+const crew = () => me()?.supirManual ? [state.session.supir, state.session.pendamping].filter(Boolean) : [state.session.nama];
+const crewLabel = () => crew().join(' & ');
+const JATAH = 60;
+const saveBrk = () => LS.set('hbd_break', state.brk);
+function brkReset(){ if (state.brk.date !== state.today){ state.brk = { date: state.today, used: {}, active: null }; saveBrk(); } }
+function mergeBreaks(b){
+  if (!b) return;
+  brkReset();
+  for (const [k, v] of Object.entries(b.used || {})) state.brk.used[k] = Math.max(state.brk.used[k] || 0, v);
+  const pendingStart = state.queue.some(q => q.action === 'breakStart');
+  const pendingEnd = state.queue.some(q => q.action === 'breakEnd');
+  if (b.active && !state.brk.active && !pendingEnd) state.brk.active = { ...b.active, alerted: [] };  // istirahat dimulai dari HP lain
+  if (!b.active && state.brk.active && !pendingStart) state.brk.active = null;                       // sudah ditutup di server
+  saveBrk();
+}
+const onBreak = n => !!state.brk.active?.names.some(x => x.toLowerCase() === n.toLowerCase());
+const usedMin = n => (state.brk.used[n.toLowerCase()] || 0);
+function remainingSec(n){
+  let r = (JATAH - usedMin(n)) * 60;
+  if (onBreak(n)) r -= Math.floor((Date.now() - state.brk.active.startAt) / 1000);
+  return r;
+}
+const fmtClock = sec => { const a = Math.abs(sec); return (sec < 0 ? '+' : '') + Math.floor(a/60) + ':' + String(a%60).padStart(2,'0'); };
+const fmtMin = sec => sec >= 0 ? `sisa ${Math.floor(sec/60)} mnt` : `lewat ${Math.ceil(-sec/60)} mnt`;
 
 /* ====================== GPS ====================== */
 const gps = { watch: null, best: null, status: 'idle' };
@@ -247,6 +294,7 @@ async function loadToday(){
     const d = await api('list', { kurirId: state.session.kurirId, pin: state.session.pin, date: state.today });
     state.todayList = d.entries;
     LS.set('hbd_today', { date: state.today, entries: d.entries });
+    mergeBreaks(d.breaks);
   }catch(e){
     const c = LS.get('hbd_today', null);
     if (c && c.date === state.today) state.todayList = c.entries;
@@ -262,9 +310,11 @@ async function flushQueue(){
   try{
     for (const q of [...state.queue]){
       try{
-        const d = await api('deliver', { ...q, pin: state.session.pin, offline: q.tries > 0 });
-        state.queue = state.queue.filter(x => x.uid !== q.uid);
-        if (d.entry.tanggal === state.today && !state.todayList.some(e => e.uid === d.entry.uid)) state.todayList.push(d.entry);
+        const action = q.action || 'deliver';
+        const d = await api(action, { ...q, pin: state.session.pin, offline: q.tries > 0 });
+        state.queue = state.queue.filter(x => x.qid ? x.qid !== q.qid : x.uid !== q.uid);
+        if (action === 'deliver' && d.entry.tanggal === state.today && !state.todayList.some(e => e.uid === d.entry.uid)) state.todayList.push(d.entry);
+        if (action !== 'deliver' && d.breaks){ saveQueue(); mergeBreaks(d.breaks); }
       }catch(e){
         q.tries = (q.tries || 0) + 1;
         if (e.network) break;
@@ -275,13 +325,13 @@ async function flushQueue(){
   } finally { flushing = false; }
   state.todayList.sort((a,b) => a.jam.localeCompare(b.jam));
   LS.set('hbd_today', { date: state.today, entries: state.todayList });
-  if (state.screen === 'main' && !state.selected) render();
+  if (state.screen === 'main' && !state.selected && !$('#brksheet')) render();
 }
 
 /* Gabungan: yang sudah di server + yang masih antri di HP */
 function todayMerged(){
-  const pend = state.queue.filter(q => q.tanggal === state.today && q.kurirId === state.session?.kurirId)
-    .map(q => ({ uid:q.uid, jam:q.jam, customer:q.customerName, customerId:q.customerId, catatan:q.catatan, supir:q.supir, pending:true, error:q.error }));
+  const pend = state.queue.filter(q => !q.action && q.tanggal === state.today && q.kurirId === state.session?.kurirId)
+    .map(q => ({ uid:q.uid, jam:q.jam, customer:q.customerName, customerId:q.customerId, catatan:q.catatan, supir:q.supir, pendamping:q.pendamping, pending:true, error:q.error }));
   return [...state.todayList, ...pend].sort((a,b) => a.jam.localeCompare(b.jam));
 }
 function deliveredToday(){
@@ -303,7 +353,7 @@ async function markDelivered(){
   const now = new Date();
   const item = {
     uid: uuid(), kurirId: state.session.kurirId, customerId: c.id, customerName: c.nama,
-    catatan: ($('#note')?.value || '').trim(), supir: state.session.supir || '', deliveredAt: now.toISOString(),
+    catatan: ($('#note')?.value || '').trim(), supir: state.session.supir || '', pendamping: state.session.pendamping || '', deliveredAt: now.toISOString(),
     tanggal: ymd(now), jam: hms(now),
     lat: gps.best?.lat ?? null, lng: gps.best?.lng ?? null, acc: gps.best?.acc ?? null, tries: 0
   };
@@ -356,18 +406,22 @@ async function doLogin(){
     state.loginErr = e.message; render();
   }
 }
-function saveSupir(name){
-  name = String(name || $('#supir')?.value || '').trim().replace(/\s+/g, ' ');
+function saveSupir(){
+  const clean = v => String(v || '').trim().replace(/\s+/g, ' ');
+  const name = clean($('#supir')?.value), dua = clean($('#pendamping')?.value);
   if (name.length < 2){ state.loginErr = 'Tulis nama supir dulu.'; return render(); }
-  state.session.supir = name; state.session.supirDate = state.today;
+  if (dua && dua.toLowerCase() === name.toLowerCase()){ state.loginErr = 'Nama supir dan pendamping tidak boleh sama.'; return render(); }
+  if (state.brk.active){ state.loginErr = 'Selesaikan istirahat dulu sebelum ganti kru.'; return render(); }
+  state.session.supir = name; state.session.pendamping = dua; state.session.supirDate = state.today;
   LS.set('hbd_session', state.session);
-  const recent = [name, ...LS.get('hbd_supir_names', []).filter(n => n.toLowerCase() !== name.toLowerCase())].slice(0, 8);
-  LS.set('hbd_supir_names', recent);
+  let recent = LS.get('hbd_supir_names', []);
+  for (const n of [dua, name].filter(Boolean)) recent = [n, ...recent.filter(x => x.toLowerCase() !== n.toLowerCase())];
+  LS.set('hbd_supir_names', recent.slice(0, 10));
   state.loginErr = ''; state.screen = 'main'; state.tab = 'antar';
   render(); loadToday(); flushQueue();
 }
 function logout(msg){
-  state.session = null; LS.del('hbd_session'); LS.del('hbd_today');
+  state.session = null; LS.del('hbd_session'); LS.del('hbd_today'); LS.del('hbd_break'); state.brk = { date: null, used: {}, active: null };
   state.todayList = []; state.screen = 'login'; state.pickCourier = null; state.loginErr = msg || '';
   render();
 }
@@ -383,10 +437,10 @@ function render(){
   app.innerHTML = demo + `
     <header class="top">
       <div class="top-row">
-        <div class="id"><span class="logo sm" role="img" aria-label="Hungry Bird"></span><div><div class="hello">${me()?.supirManual ? esc(state.session.nama) + ', supir ' + esc(state.session.supir || '-') : 'Halo, ' + esc(state.session.nama)}</div>
+        <div class="id"><span class="logo sm" role="img" aria-label="Hungry Bird"></span><div><div class="hello">${me()?.supirManual ? esc(state.session.nama) + ', ' + esc(crewLabel() || '-') : 'Halo, ' + esc(state.session.nama)}</div>
              <div class="date">${esc(shortDate(state.today))}</div></div></div>
         <div class="topbtns">
-          ${me()?.supirManual ? `<button class="linkbtn" data-act="supir">Ganti supir</button>` : ''}
+          ${me()?.supirManual ? `<button class="linkbtn" data-act="supir">Ganti kru</button>` : ''}
           <button class="linkbtn" data-act="logout">Ganti kurir</button>
         </div>
       </div>
@@ -394,8 +448,10 @@ function render(){
         ${tabBtn('antar','Antar')}${tabBtn('hari','Hari ini ('+n+')')}${tabBtn('riwayat','Riwayat')}
       </nav>
     </header>
+    <div id="breakbar"></div>
     <main>${state.tab === 'antar' ? antarHTML() : state.tab === 'hari' ? hariHTML() : riwayatHTML()}</main>`;
   if (state.tab === 'antar') renderCustList();
+  renderBreak();
 }
 const tabBtn = (id, label) => `<button class="tab" role="tab" aria-selected="${state.tab===id}" data-tab="${id}">${esc(label)}</button>`;
 
@@ -418,17 +474,21 @@ function loginHTML(){
 }
 
 function supirHTML(){
-  const cur = state.session.supirDate === state.today ? state.session.supir : '';
+  const same = state.session.supirDate === state.today;
+  const cur = same ? state.session.supir : '', cur2 = same ? (state.session.pendamping || '') : '';
   const recent = LS.get('hbd_supir_names', []);
   return `<div class="login">
     <span class="logo" role="img" aria-label="Hungry Bird" style="width:72px;margin-bottom:16px"></span>
     <div class="brand">${esc(state.session.nama)}</div>
-    <div class="brand-sub">${esc(shortDate(state.today))}. Siapa supir yang mengantar?</div>
+    <div class="brand-sub">${esc(shortDate(state.today))}. Siapa yang mengantar hari ini?</div>
     <div class="field"><label for="supir">Nama supir</label>
       <input id="supir" type="text" maxlength="40" autocomplete="off" autocapitalize="words" value="${esc(cur)}" placeholder="Tulis nama supir"></div>
-    ${recent.length ? `<div class="chips">${recent.map(n => `<button class="chip" data-supirname="${esc(n)}">${esc(n)}</button>`).join('')}</div>` : ''}
+    <div class="field"><label for="pendamping">Nama pendamping <span style="font-weight:400;color:var(--muted)">(kalau berdua)</span></label>
+      <input id="pendamping" type="text" maxlength="40" autocomplete="off" autocapitalize="words" value="${esc(cur2)}" placeholder="Kosongkan kalau sendiri"></div>
+    ${recent.length ? `<div class="n" style="margin-top:14px;color:var(--muted);font-size:14px">Ketuk nama untuk mengisi:</div>
+      <div class="chips">${recent.map(n => `<button class="chip" data-supirname="${esc(n)}">${esc(n)}</button>`).join('')}</div>` : ''}
     <button class="primary" data-act="supir-save">Mulai antar</button>
-    ${cur ? `<button class="ghost" data-act="supir-cancel">Batal, tetap ${esc(cur)}</button>` : ''}
+    ${cur ? `<button class="ghost" data-act="supir-cancel">Batal, tetap ${esc([cur, cur2].filter(Boolean).join(' & '))}</button>` : ''}
     <button class="ghost" data-act="logout">Bukan ${esc(state.session.nama)}? Ganti kurir</button>
     ${state.loginErr ? `<div class="err" role="alert">${esc(state.loginErr)}</div>` : ''}
   </div>`;
@@ -473,7 +533,7 @@ function entryHTML(e, allowCancel){
     <div class="t">${esc(e.jam.slice(0,5))}</div>
     <div><div class="c">${esc(e.customer)}</div>
       ${e.catatan ? `<div class="n">${esc(e.catatan)}</div>` : ''}
-      ${e.supir ? `<div class="n">Supir: ${esc(e.supir)}</div>` : ''}
+      ${e.supir ? `<div class="n">Supir: ${esc(e.supir)}${e.pendamping ? ', pendamping: ' + esc(e.pendamping) : ''}</div>` : ''}
       ${pills.length ? `<div class="pills">${pills.join('')}</div>` : ''}</div>
     <div>${action}</div>
   </div>`;
@@ -527,13 +587,168 @@ function showStamp(item){
   div.innerHTML = `<div class="stampview" role="dialog" aria-modal="true" aria-label="Kiriman tercatat">
     <div class="stamp"><div class="w">TERKIRIM</div><div class="h">${esc(item.jam.slice(0,5))}</div><div class="d">${esc(shortDate(item.tanggal))}</div></div>
     <div class="who">${esc(item.customerName)}</div>
-    <div class="by">diantar oleh ${esc(item.supir ? item.supir + ' (' + state.session.nama + ')' : state.session.nama)}${item.lat != null ? `, titik ±${item.acc} m` : ', tanpa titik GPS'}</div>
+    <div class="by">diantar oleh ${esc(item.supir ? [item.supir, item.pendamping].filter(Boolean).join(' & ') + ' (' + state.session.nama + ')' : state.session.nama)}${item.lat != null ? `, titik ±${item.acc} m` : ', tanpa titik GPS'}</div>
     <div class="sync warn" id="sync" aria-live="polite">Menyimpan ke Google Sheet…</div>
     <button class="primary" data-act="stamp-done">Selesai</button>
   </div>`;
   document.body.appendChild(div);
   if (navigator.vibrate) navigator.vibrate(60);
 }
+
+/* ====================== ISTIRAHAT ====================== */
+function renderBreak(){
+  const bar = $('#breakbar'); if (!bar || !state.session) return;
+  brkReset();
+  const a = state.brk.active, names = crew();
+  const all = a && names.every(onBreak);
+  // Seluruh kru istirahat → layar istirahat penuh (catat kiriman dikunci)
+  let view = $('#breakwrap');
+  if (all && !view){
+    view = document.createElement('div'); view.id = 'breakwrap';
+    document.body.appendChild(view);
+  }
+  if (!all && view) view.remove();
+  if (all){
+    const low = Math.min(...a.names.map(remainingSec));
+    const endAt = new Date(a.startAt + Math.min(...a.names.map(n => (JATAH - usedMin(n)) * 60000)));
+    view.innerHTML = `<div class="breakview" role="dialog" aria-modal="true" aria-label="Sedang istirahat">
+      <div class="lbl">${low >= 0 ? 'Sisa istirahat' : 'Istirahat lewat batas'}</div>
+      <div class="clock ${low < 0 ? 'over' : low < 300 ? 'warn' : ''}" id="bclock">${fmtClock(low)}</div>
+      <div class="sub">${low >= 0 ? `Kembali paling lambat pukul <b>${esc(hms(endAt).slice(0,5))}</b>` : 'Segera kembali bekerja'}</div>
+      <div class="names"><div id="bnames">${breakNames(a)}</div>
+        <div>Mulai ${esc(hms(new Date(a.startAt)).slice(0,5))}</div></div>
+      <button class="primary" data-act="break-end">Selesai istirahat</button>
+    </div>`;
+    bar.innerHTML = '';
+    return;
+  }
+  if (a){
+    const low = Math.min(...a.names.map(remainingSec));
+    bar.className = 'breakbar ' + (low < 0 ? 'over' : 'on');
+    bar.innerHTML = `<div class="bl"><b>${esc(a.names.join(' & '))} istirahat, ${esc(fmtMin(low))}</b><br>Mulai ${esc(hms(new Date(a.startAt)).slice(0,5))}</div>
+      <button class="bbtn solid" data-act="break-end">Selesai</button>`;
+    return;
+  }
+  bar.className = 'breakbar';
+  bar.innerHTML = `<div class="bl">Istirahat hari ini<br><b>${names.map(n => (names.length > 1 ? esc(n) + ' ' : '') + esc(fmtMin(remainingSec(n)))).join(', ')}</b></div>
+    <button class="bbtn" data-act="break-open">Istirahat</button>`;
+}
+
+function breakNames(a){ return a.names.length > 1 ? a.names.map(n => `${esc(n)}: ${esc(fmtMin(remainingSec(n)))}`).join('<br>') : ''; }
+
+function openBreakSheet(){
+  if (needSupir()){ state.screen = 'supir'; return render(); }
+  const names = crew();
+  const div = document.createElement('div'); div.id = 'brksheet';
+  div.innerHTML = `<div class="scrim" data-act="break-close"></div>
+    <section class="sheet" role="dialog" aria-modal="true" aria-labelledby="bk-t">
+      <h2 id="bk-t">Mulai istirahat</h2>
+      <div class="addr">Jatah ${JATAH} menit per orang per hari, boleh dipecah beberapa kali.</div>
+      <div style="margin-top:10px">${names.map((n, i) => `
+        <label class="check"><input type="checkbox" name="bk" value="${esc(n)}" checked ${names.length === 1 ? 'disabled' : ''}>
+          <span>${esc(n)}</span><span class="rest">${esc(fmtMin(remainingSec(n)))}</span></label>`).join('')}</div>
+      ${names.length > 1 ? `<div class="addr" style="margin-top:8px">Hapus centang kalau hanya satu orang yang istirahat.</div>` : ''}
+      <button class="primary" data-act="break-start">Mulai istirahat</button>
+      <button class="ghost" data-act="break-close">Batal</button>
+    </section>`;
+  document.body.appendChild(div);
+}
+
+let audioCtx = null;
+async function startBreak(){
+  const names = [...document.querySelectorAll('input[name=bk]')].filter(x => x.checked).map(x => x.value);
+  if (!names.length) return toast('Pilih siapa yang istirahat.');
+  const habis = names.filter(n => remainingSec(n) <= 0);
+  if (habis.length && !confirm(`Jatah istirahat ${habis.join(' & ')} sudah habis. Tetap mulai? Waktunya akan tercatat lewat batas.`)) return;
+  try{ audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)(); }catch{}
+  askNotif();
+  const btn = document.querySelector('[data-act="break-start"]'); if (btn){ btn.disabled = true; btn.textContent = 'Memulai…'; }
+  const pos = await quickFix(3000);
+  const now = Date.now(), uid = uuid();
+  // Tandai ambang yang sudah terlewati supaya tidak langsung berbunyi
+  const alerted = [];
+  for (const n of names) for (const m of [10, 5, 0]) if (remainingSec(n) <= m * 60) alerted.push(n + '|' + m);
+  state.brk.active = { uid, names, startAt: now, alerted };
+  saveBrk();
+  state.queue.push({ qid: uuid(), action: 'breakStart', uid, kurirId: state.session.kurirId, names, startAt: new Date(now).toISOString(), lat: pos?.lat ?? null, lng: pos?.lng ?? null });
+  saveQueue();
+  $('#brksheet')?.remove();
+  render();
+  flushQueue();
+}
+
+function endBreak(){
+  const a = state.brk.active; if (!a) return;
+  const now = Date.now();
+  const mins = Math.max(0, Math.round((now - a.startAt) / 60000));
+  for (const n of a.names) state.brk.used[n.toLowerCase()] = usedMin(n) + mins;
+  state.brk.active = null; saveBrk();
+  state.queue.push({ qid: uuid(), action: 'breakEnd', uid: a.uid, kurirId: state.session.kurirId, endAt: new Date(now).toISOString() });
+  saveQueue();
+  $('#breakwrap')?.remove();
+  toast(`Istirahat ${mins} menit. ` + a.names.map(n => (a.names.length > 1 ? n + ' ' : '') + fmtMin(remainingSec(n))).join(', ') + '.');
+  render();
+  flushQueue();
+}
+
+function quickFix(ms){
+  return new Promise(res => {
+    if (!('geolocation' in navigator)) return res(null);
+    const t = setTimeout(() => res(null), ms);
+    navigator.geolocation.getCurrentPosition(p => { clearTimeout(t); res({ lat: +p.coords.latitude.toFixed(6), lng: +p.coords.longitude.toFixed(6) }); },
+      () => { clearTimeout(t); res(null); }, { enableHighAccuracy: true, maximumAge: 60000, timeout: ms });
+  });
+}
+
+/* Notifikasi sisa waktu: bunyi + getar + notifikasi HP (kalau diizinkan) */
+let swReg = null;
+if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').then(r => swReg = r).catch(() => {});
+function askNotif(){ try{ if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission(); }catch{} }
+function beep(){
+  try{
+    if (!audioCtx) return; audioCtx.resume?.();
+    [0, 0.35, 0.7].forEach(t => {
+      const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+      o.frequency.value = 880; o.connect(g); g.connect(audioCtx.destination);
+      g.gain.setValueAtTime(0.25, audioCtx.currentTime + t); g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + t + 0.25);
+      o.start(audioCtx.currentTime + t); o.stop(audioCtx.currentTime + t + 0.26);
+    });
+  }catch{}
+}
+function notify(title, body){
+  toast(title + '. ' + body);
+  if (navigator.vibrate) navigator.vibrate([300, 150, 300, 150, 300]);
+  beep();
+  try{
+    if ('Notification' in window && Notification.permission === 'granted'){
+      const opt = { body, tag: 'hb-istirahat', renotify: true, icon: document.querySelector('link[rel=apple-touch-icon]')?.href };
+      if (swReg) swReg.showNotification(title, opt); else new Notification(title, opt);
+    }
+  }catch{}
+}
+function breakTick(){
+  const a = state.brk.active;
+  if (!a || !state.session) return;
+  if (state.brk.date !== ymd(new Date())) return;   // ganti hari ditangani visibilitychange
+  for (const m of [10, 5, 0]){
+    const who = a.names.filter(n => remainingSec(n) <= m * 60 && !a.alerted.includes(n + '|' + m));
+    if (!who.length) continue;
+    who.forEach(n => a.alerted.push(n + '|' + m)); saveBrk();
+    const siapa = a.names.length > 1 ? who.join(' & ') + ': ' : '';
+    if (m > 0) notify(`Sisa istirahat ${m} menit`, `${siapa}siap-siap kembali, ya.`);
+    else notify('Waktu istirahat habis', `${siapa}jatah ${JATAH} menit hari ini sudah terpakai. Tekan Selesai istirahat.`);
+  }
+  const clock = $('#bclock');
+  if (clock){
+    const low = Math.min(...a.names.map(remainingSec));
+    clock.textContent = fmtClock(low);
+    clock.className = 'clock ' + (low < 0 ? 'over' : low < 300 ? 'warn' : '');
+    const bn = $('#bnames'); if (bn) bn.innerHTML = breakNames(a);
+    if (low < 0 && !clock.dataset.over){ clock.dataset.over = 1; renderBreak(); }
+  } else if (Date.now() % 15000 < 1000) renderBreak();
+  document.title = `☕ ${fmtClock(Math.min(...a.names.map(remainingSec)))} · HB Delivery`;
+}
+setInterval(() => { breakTick(); if (!state.brk.active && document.title !== 'Hungry Bird Delivery') document.title = 'Hungry Bird Delivery'; }, 1000);
 
 /* ====================== EVENT ====================== */
 document.addEventListener('click', e => {
@@ -547,7 +762,12 @@ document.addEventListener('click', e => {
   }
   if (t.dataset.cust){ const c = state.customers.find(x => x.id === t.dataset.cust); if (c) openSheet(c); return; }
   if (t.dataset.courier){ state.pickCourier = state.couriers.find(x => x.id === t.dataset.courier); state.loginErr=''; render(); setTimeout(()=>$('#pin')?.focus(), 30); return; }
-  if (t.dataset.supirname) return saveSupir(t.dataset.supirname);
+  if (t.dataset.supirname){
+    const a = $('#supir'), b2 = $('#pendamping'), n = t.dataset.supirname;
+    const target = !a.value.trim() ? a : (!b2.value.trim() && a.value.trim().toLowerCase() !== n.toLowerCase()) ? b2 : null;
+    if (target) target.value = n; else toast('Kosongkan salah satu kolom dulu.');
+    return;
+  }
   if (t.dataset.cancel) return cancelEntry(t.dataset.cancel);
   if (t.dataset.drop) return dropPending(t.dataset.drop);
   switch (t.dataset.act){
@@ -556,9 +776,14 @@ document.addEventListener('click', e => {
     case 'stamp-done': $('#stampwrap')?.remove(); state.tab = 'antar'; state.search = ''; return render();
     case 'login': return doLogin();
     case 'supir': state.loginErr = ''; state.screen = 'supir'; return render();
+    case 'break-open': return openBreakSheet();
+    case 'break-close': return $('#brksheet')?.remove();
+    case 'break-start': return startBreak();
+    case 'break-end': return endBreak();
     case 'supir-save': return saveSupir();
     case 'supir-cancel': state.screen = 'main'; return render();
-    case 'logout': if (!state.queue.length || confirm('Masih ada kiriman yang belum terkirim ke server. Tetap ganti kurir?')) logout(); return;
+    case 'logout': if (state.brk.active) return toast('Selesaikan istirahat dulu sebelum ganti kurir.');
+      if (!state.queue.length || confirm('Masih ada kiriman yang belum terkirim ke server. Tetap ganti kurir?')) logout(); return;
     case 'flush': flushQueue().then(() => toast(state.queue.length ? 'Masih ada yang belum terkirim.' : 'Semua sudah terkirim.')); return;
   }
 });
@@ -570,15 +795,16 @@ document.addEventListener('change', e => {
 });
 document.addEventListener('keydown', e => {
   if (e.key === 'Enter' && e.target.id === 'pin') doLogin();
-  if (e.key === 'Enter' && e.target.id === 'supir') saveSupir();
+  if (e.key === 'Enter' && (e.target.id === 'supir' || e.target.id === 'pendamping')) saveSupir();
   if (e.key === 'Enter' && e.target.id === 'note') markDelivered();
   if (e.key === 'Escape' && state.selected) closeSheet();
+  if (e.key === 'Escape' && $('#brksheet')) $('#brksheet').remove();
 });
 window.addEventListener('online', flushQueue);
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState !== 'visible') return;
   const t = ymd(new Date());
-  if (t !== state.today){ state.today = t; state.todayList = []; if (state.session && needSupir()){ closeSheet(); state.screen = 'supir'; render(); } loadToday(); }  // lewat tengah malam → tanggal ganti otomatis
+  if (t !== state.today){ if (state.brk.active){ state.brk.active = null; saveBrk(); $('#breakwrap')?.remove(); toast('Istirahat kemarin tidak ditutup. Tercatat "Tidak ditutup".'); } state.today = t; state.todayList = []; brkReset(); if (state.session && needSupir()){ closeSheet(); state.screen = 'supir'; render(); } loadToday(); }  // lewat tengah malam → tanggal ganti otomatis
   flushQueue();
 });
 setInterval(() => { if (state.queue.length) flushQueue(); }, 30000);
@@ -602,20 +828,34 @@ function demoApi(action, b){
     ],
     customers: ['12bArs Coffeeshop','A Bit More','Acai Shop','Bali de Uma','Bam Bam Padel Ubud','Capucine Bakery','Dawn Canggu','Doppio Cafe','Dulu Coffee Canggu','Flock Ubud','Goemerot Jimbaran','Hygge Coffee','Kabak Cafe','Little Ripper Bali']
       .map((n,i) => ({ id:'C-'+String(i+1).padStart(3,'0'), nama:n, area:'', alamat:'', lat:null, lng:null })),
-    log: []
+    log: [], breaks: []
   });
   const wait = sleep(350);
   const auth = () => { const k = db.couriers.find(c => c.id === b.kurirId); if (!k || k.pin !== String(b.pin)) { const e = new Error('PIN salah.'); e.server = true; throw e; } return k; };
   return wait.then(() => {
     if (action === 'init') return { ok:true, customers: db.customers, couriers: db.couriers.map(({pin, ...c}) => c) };
     if (action === 'login'){ const k = auth(); return { ok:true, kurir:{ id:k.id, nama:k.nama } }; }
-    if (action === 'list'){ auth(); return { ok:true, entries: db.log.filter(e => e.kurirId === b.kurirId && e.tanggal === b.date) }; }
+    const info = (k, date) => {
+      const used = {}; let active = null;
+      for (const r of db.breaks.filter(r => r.tanggal === date)){
+        if (r.status === 'Selesai') used[r.nama.toLowerCase()] = (used[r.nama.toLowerCase()] || 0) + r.durasi;
+        if (r.status === 'Berjalan' && r.kurirId === k.id){ active = active || { uid:r.uid, names:[], startAt:r.startAt }; if (active.uid === r.uid) active.names.push(r.nama); }
+      }
+      return { jatah:60, used, active };
+    };
+    if (action === 'list'){ const k = auth(); return { ok:true, entries: db.log.filter(e => e.kurirId === b.kurirId && e.tanggal === b.date), breaks: info(k, b.date) }; }
+    if (action === 'breakStart'){ const k = auth(); const t = new Date(b.startAt);
+      if (!db.breaks.some(r => r.uid === b.uid)) b.names.forEach(n => db.breaks.push({ uid:b.uid, tanggal:ymd(t), kurirId:k.id, nama:n, startAt:t.getTime(), status:'Berjalan', durasi:0 }));
+      return { ok:true, breaks: info(k, ymd(t)) }; }
+    if (action === 'breakEnd'){ const k = auth(); const end = new Date(b.endAt).getTime(); let tgl = ymd(new Date(end));
+      db.breaks.filter(r => r.uid === b.uid && r.status === 'Berjalan').forEach(r => { r.status = 'Selesai'; r.durasi = Math.round((end - r.startAt)/60000); tgl = r.tanggal; });
+      return { ok:true, breaks: info(k, tgl) }; }
     if (action === 'deliver'){
       const k = auth(); const dup = db.log.find(e => e.uid === b.uid); if (dup) return { ok:true, entry:dup };
       const c = db.customers.find(x => x.id === b.customerId);
       let cek = 'Tanpa GPS';
       if (b.lat != null){ if (c.lat == null && b.acc <= 100){ c.lat = b.lat; c.lng = b.lng; cek = 'Titik baru disimpan'; } else cek = 'Sesuai titik'; }
-      const entry = { uid:b.uid, tanggal:b.tanggal, jam:b.jam, kurirId:k.id, kurir:k.nama, supir:b.supir||'', customerId:c.id, customer:c.nama, catatan:b.catatan, cek, status:'Terkirim', serverTs:Date.now() };
+      const entry = { uid:b.uid, tanggal:b.tanggal, jam:b.jam, kurirId:k.id, kurir:k.nama, supir:b.supir||'', pendamping:b.pendamping||'', customerId:c.id, customer:c.nama, catatan:b.catatan, cek, status:'Terkirim', serverTs:Date.now() };
       db.log.push(entry); return { ok:true, entry };
     }
     if (action === 'cancel'){ auth(); const e = db.log.find(x => x.uid === b.uid); e.status = 'Dibatalkan'; return { ok:true, entry:e }; }
