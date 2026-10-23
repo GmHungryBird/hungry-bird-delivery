@@ -1,0 +1,1159 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#4A2E1C">
+<title>Hungry Bird Delivery</title>
+<link rel="icon" type="image/png" sizes="64x64" href="data:image/png;base64,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">
+<link rel="icon" type="image/png" sizes="192x192" href="data:image/png;base64,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">
+<link rel="apple-touch-icon" href="data:image/png;base64,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">
+<meta name="apple-mobile-web-app-title" content="HB Delivery">
+<meta name="application-name" content="HB Delivery"><link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F3F5F2; --card:#FFFFFF; --ink:#17201B; --muted:#5C6861; --line:#D6DCD7;
+  --roast:#4A2E1C; --roast-2:#6B442A; --crema:#EBDCCB;
+  --stamp:#2B3FC7; --ok:#1D7348; --ok-bg:#E2F0E7; --warn:#8F5200; --warn-bg:#FAEBD5;
+  --danger:#B3261E; --danger-bg:#FBE3E1;
+  --font:'Barlow',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --cond:'Barlow Condensed','Arial Narrow',system-ui,sans-serif;
+  --logo:url("data:image/png;base64,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");
+  box-sizing:border-box;
+}
+@media (prefers-color-scheme: dark){
+  :root{--paper:#121614;--card:#1B211E;--ink:#E9EEEA;--muted:#9AA69F;--line:#2C3531;
+    --roast:#3A2416;--roast-2:#C9A27E;--crema:#D9C3AC;--stamp:#8F9BFF;--ok:#6FCF97;--ok-bg:#1C3326;
+    --warn:#F2B25C;--warn-bg:#3A2A12;--danger:#FF8A80;--danger-bg:#3A1C1A}
+}
+*,*::before,*::after{box-sizing:inherit}
+html,body{margin:0}
+body{background:var(--paper);color:var(--ink);font:16px/1.45 var(--font);-webkit-font-smoothing:antialiased;
+  padding-bottom:env(safe-area-inset-bottom,0px)}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--stamp);outline-offset:2px}
+.wrap{max-width:560px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;background:var(--paper)}
+.demo{background:var(--warn-bg);color:var(--warn);font-size:14px;padding:8px 16px;text-align:center}
+
+/* Header */
+.top{background:var(--roast);color:#fff;padding:calc(14px + env(safe-area-inset-top,0px)) 16px 0}
+.top-row{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.hello{font-size:15px;color:var(--crema)}
+.date{font-family:var(--cond);font-weight:700;font-size:clamp(22px,6.5vw,30px);line-height:1.05;margin-top:2px}
+.logo{display:block;flex:none;width:112px;aspect-ratio:360/267;background:var(--roast-2);
+  -webkit-mask:var(--logo) center/contain no-repeat;mask:var(--logo) center/contain no-repeat}
+.logo.sm{width:46px;background:#fff}
+.id{display:flex;align-items:center;gap:12px;min-width:0;flex:1}
+.topbtns{display:flex;flex-direction:column;gap:6px;align-items:flex-end}
+.linkbtn{white-space:nowrap;background:none;border:1px solid rgba(255,255,255,.35);color:#fff;border-radius:8px;padding:5px 9px;font-size:13px;cursor:pointer}
+.tabs{display:flex;margin-top:14px}
+.tab{flex:1;background:none;border:0;border-bottom:3px solid transparent;color:var(--crema);padding:12px 4px 10px;font-weight:600;font-size:15px;cursor:pointer}
+.tab[aria-selected="true"]{color:#fff;border-bottom-color:#fff}
+
+/* Search + customer list */
+.search{position:sticky;top:0;z-index:4;background:var(--paper);padding:12px 16px;border-bottom:1px solid var(--line)}
+.search input{width:100%;height:50px;border:2px solid var(--line);border-radius:12px;background:var(--card);padding:0 14px;font-size:17px}
+.search input:focus{border-color:var(--roast-2);outline:none}
+.count{font-size:13px;color:var(--muted);margin-top:6px}
+.cust{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:none;border:0;border-bottom:1px solid var(--line);padding:14px 16px;cursor:pointer}
+.cust:active{background:var(--card)}
+.cust .name{font-weight:600;font-size:17px;line-height:1.25}
+.cust .sub{color:var(--muted);font-size:14px}
+.muatan{background:var(--card);border-bottom:1px solid var(--line)}
+.muatan .list-head{border-bottom:0;padding-bottom:4px}
+.mu{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:none;border:0;border-top:1px solid var(--line);padding:12px 16px;cursor:pointer;color:inherit;font:inherit}
+.mu .name{font-weight:600;font-size:17px;line-height:1.25}
+.mu .sub{color:var(--muted);font-size:14px}
+.mu .go{margin-left:auto;flex:none;font-weight:700;color:var(--stamp)}
+.ruteh{padding:10px 16px 4px;font-size:13px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--roast-2);border-top:1px solid var(--line)}
+.mubadge{margin-left:auto;flex:none;font-size:13px;font-weight:700;border-radius:999px;padding:2px 9px;background:var(--warn-bg);color:var(--warn)}
+.field .shipopt{display:flex;gap:12px;align-items:flex-start;border:2px solid var(--line);border-radius:12px;padding:12px 14px;margin:8px 0 0;cursor:pointer;font-weight:400;font-size:16px}
+.field .shipopt input{width:22px;height:22px;min-width:22px;margin:1px 0 0;padding:0;border:0;flex:none;accent-color:var(--stamp)}
+.shipopt b{display:block;font-size:16px}
+.shipopt span{color:var(--muted);font-size:14px}
+.shipopt:has(input:checked){border-color:var(--stamp)}
+.minstamp{margin-left:auto;flex:none;font-family:var(--cond);font-weight:700;font-size:17px;color:var(--stamp);
+  border:2px solid var(--stamp);border-radius:5px;padding:0 6px;transform:rotate(-4deg)}
+.minstamp.pending{color:var(--warn);border-color:var(--warn)}
+.empty{padding:40px 24px;text-align:center;color:var(--muted)}
+
+/* Entries */
+.list-head{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line);gap:12px}
+.list-head b{font-size:17px}
+.list-head input[type=date]{height:44px;border:2px solid var(--line);border-radius:10px;background:var(--card);padding:0 10px}
+.entry{display:grid;grid-template-columns:auto 1fr auto;gap:4px 12px;align-items:start;padding:14px 16px;border-bottom:1px solid var(--line)}
+.entry .t{font-family:var(--cond);font-weight:700;font-size:28px;line-height:1;min-width:66px}
+.entry .c{font-weight:600;font-size:17px;line-height:1.25}
+.entry .n{color:var(--muted);font-size:14px}
+.entry.void .t,.entry.void .c{text-decoration:line-through;color:var(--muted)}
+.pills{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.pill{font-size:13px;font-weight:600;border-radius:999px;padding:2px 9px;background:var(--line);color:var(--ink)}
+.pill.ok{background:var(--ok-bg);color:var(--ok)}
+.pill.warn{background:var(--warn-bg);color:var(--warn)}
+.pill.danger{background:var(--danger-bg);color:var(--danger)}
+.smallbtn{background:none;border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-size:14px;cursor:pointer;color:var(--danger)}
+
+/* Sheet */
+.scrim{position:fixed;inset:0;background:rgba(10,14,12,.5);z-index:20}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:21;max-width:560px;margin:0 auto;background:var(--card);
+  border-radius:18px 18px 0 0;padding:22px 16px calc(18px + env(safe-area-inset-bottom,0px));
+  animation:up .18s ease-out}
+@keyframes up{from{transform:translateY(24px);opacity:0}to{transform:none;opacity:1}}
+.sheet h2{margin:0;font-size:24px;line-height:1.2}
+.sheet .addr{color:var(--muted);margin-top:4px;font-size:15px}
+.sheet .addr a{color:var(--stamp)}
+.field{margin-top:18px}
+.field label{display:block;font-weight:600;font-size:15px;margin-bottom:6px}
+.field .req{color:var(--danger)}
+.field.bad input{border-color:var(--danger)}
+.field .hint{font-size:13px;color:var(--danger);margin-top:4px}
+.field input{width:100%;height:50px;border:2px solid var(--line);border-radius:12px;background:var(--paper);padding:0 14px;font-size:17px}
+.gps{display:flex;align-items:center;gap:8px;margin-top:14px;font-size:15px;color:var(--muted)}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--line);flex:none}
+.dot.search{background:var(--warn);animation:blink 1s infinite}
+.dot.ok{background:var(--ok)}
+.dot.off{background:var(--danger)}
+@keyframes blink{50%{opacity:.3}}
+.primary{display:block;width:100%;height:60px;margin-top:18px;border:0;border-radius:14px;background:var(--roast);color:#fff;
+  font-family:var(--cond);font-weight:700;font-size:24px;letter-spacing:.3px;cursor:pointer}
+.primary:disabled{opacity:.6}
+.ghost{display:block;width:100%;height:48px;margin-top:8px;border:0;background:none;color:var(--muted);font-size:16px;cursor:pointer}
+
+/* Stamp confirmation */
+.stampview{position:fixed;inset:0;z-index:30;background:var(--paper);display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:calc(24px + env(safe-area-inset-top,0px)) 24px calc(24px + env(safe-area-inset-bottom,0px));text-align:center}
+.stamp{border:5px solid var(--stamp);color:var(--stamp);border-radius:14px;padding:16px 26px 14px;transform:rotate(-7deg);
+  font-family:var(--cond);animation:thunk .32s cubic-bezier(.2,1.6,.4,1) both;max-width:100%}
+.stamp .w{font-weight:800;font-size:42px;letter-spacing:4px;line-height:1}
+.stamp .h{font-weight:800;font-size:84px;line-height:.95;margin-top:6px}
+.stamp .d{font-weight:600;font-size:19px;margin-top:4px}
+@keyframes thunk{from{transform:rotate(-7deg) scale(1.7);opacity:0}to{transform:rotate(-7deg) scale(1);opacity:1}}
+.stampview .who{margin-top:34px;font-size:20px;font-weight:600}
+.stampview .by{color:var(--muted);margin-top:2px}
+.sync{margin-top:14px;font-size:15px;font-weight:600}
+.sync.ok{color:var(--ok)} .sync.warn{color:var(--warn)} .sync.danger{color:var(--danger)}
+.stampview .primary{max-width:360px}
+
+/* Login */
+.login{padding:calc(40px + env(safe-area-inset-top,0px)) 20px 32px;flex:1}
+.brand{font-family:var(--cond);font-weight:800;font-size:44px;line-height:1;color:var(--roast-2)}
+.brand-sub{color:var(--muted);margin-top:6px;font-size:17px}
+.who-list{margin-top:28px;display:grid;gap:10px}
+.who-btn{display:flex;justify-content:space-between;align-items:center;width:100%;min-height:62px;padding:10px 16px;border:2px solid var(--line);
+  border-radius:14px;background:var(--card);cursor:pointer;text-align:left}
+.who-btn b{font-size:18px}
+.who-btn span{color:var(--muted);font-size:14px}
+.who-btn[aria-pressed="true"]{border-color:var(--roast-2);background:color-mix(in srgb,var(--roast-2) 14%,var(--card))}
+.pin{letter-spacing:8px;text-align:center;font-size:24px!important}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.chip{border:2px solid var(--line);background:var(--card);border-radius:999px;padding:8px 14px;font-weight:600;cursor:pointer}
+.err{color:var(--danger);margin-top:10px;font-weight:600}
+
+/* Istirahat */
+.breakbar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 16px;background:var(--card);border-bottom:1px solid var(--line)}
+.breakbar .bl{font-size:14px;color:var(--muted);line-height:1.3}
+.breakbar .bl b{color:var(--ink);font-size:15px}
+.breakbar.on{background:var(--warn-bg)}
+.breakbar.on .bl b{color:var(--warn)}
+.breakbar.over{background:var(--danger-bg)}
+.breakbar.over .bl b{color:var(--danger)}
+.bbtn{flex:none;border:2px solid var(--roast-2);background:none;color:var(--roast-2);border-radius:10px;padding:8px 14px;font-weight:700;cursor:pointer}
+.bbtn.solid{background:var(--roast);border-color:var(--roast);color:#fff}
+.check{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line);font-size:17px;cursor:pointer}
+.check input{width:24px;height:24px;accent-color:var(--roast)}
+.check .rest{margin-left:auto;color:var(--muted);font-size:14px}
+.breakview{position:fixed;inset:0;z-index:25;background:var(--paper);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
+  padding:calc(24px + env(safe-area-inset-top,0px)) 24px calc(24px + env(safe-area-inset-bottom,0px))}
+.breakview .lbl{font-size:18px;color:var(--muted)}
+.breakview .clock{font-family:var(--cond);font-weight:800;font-size:96px;line-height:1;margin:8px 0 4px;font-variant-numeric:tabular-nums}
+.breakview .clock.warn{color:var(--warn)} .breakview .clock.over{color:var(--danger)}
+.breakview .sub{font-size:17px}
+.breakview .names{margin-top:20px;display:grid;gap:4px;font-size:16px;color:var(--muted)}
+.breakview .primary{max-width:360px}
+.linkish{background:none;border:0;padding:0;margin-top:4px;color:var(--stamp);font-size:14px;text-decoration:underline;cursor:pointer}
+.breakbar.due{background:var(--warn-bg)} .breakbar.due .bl b{color:var(--warn)}
+.opt{display:flex;gap:10px;align-items:flex-start;padding:10px 0;font-size:16px;cursor:pointer}
+.opt input{width:22px;height:22px;margin-top:2px;accent-color:var(--roast);flex:none}
+.person{border:2px solid var(--line);border-radius:14px;padding:12px 14px;margin-top:12px}
+.person h3{margin:0 0 4px;font-size:18px}
+.person .meta{color:var(--muted);font-size:14px}
+.person select,.person input[type=number],.sheet select,.sheet input[type=text].wide{width:100%;height:46px;border:2px solid var(--line);border-radius:10px;background:var(--paper);padding:0 10px;font-size:16px;margin-top:6px}
+.closeday{padding:18px 16px 28px}
+.closeday .primary{margin-top:8px}
+.closed{padding:18px 16px;color:var(--muted);text-align:center}
+.sheet{max-height:92vh;overflow-y:auto}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:40;
+  background:var(--ink);color:var(--paper);padding:12px 18px;border-radius:12px;font-size:15px;max-width:calc(100% - 32px)}
+.spinner{padding:60px;text-align:center;color:var(--muted)}
+@media (prefers-reduced-motion: reduce){*{animation:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"><div class="spinner">Memuat…</div></div>
+
+<script>
+/* ====================== KONFIGURASI ======================
+   Tempel URL Web App dari Apps Script (Deploy → Web app) di bawah.
+   Selama belum diisi, aplikasi jalan dalam MODE DEMO (data tidak disimpan). */
+const API_URL = 'https://script.google.com/macros/s/AKfycbzyWq5-LEWUwJw3IueULeFNdQNkh4IKraoywO6sIUqy1Ev8QDSQZU6-3hTxeoS6A0ff6g/exec';  // SALINAN (uji)
+
+const TZ = 'Asia/Makassar';
+const BATAL_MENIT = 15;
+const DEMO = !/^https:\/\/script\.google\.com\//.test(API_URL);
+
+/* ====================== UTIL ====================== */
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const LS = {
+  get(k, d){ try{ const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; }catch{ return d; } },
+  set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch{} },
+  del(k){ try{ localStorage.removeItem(k); }catch{} }
+};
+const ymd = d => new Intl.DateTimeFormat('en-CA',{timeZone:TZ,year:'numeric',month:'2-digit',day:'2-digit'}).format(d);
+const hms = d => new Intl.DateTimeFormat('en-GB',{timeZone:TZ,hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}).format(d);
+const longDate = s => new Intl.DateTimeFormat('id-ID',{timeZone:TZ,weekday:'long',day:'numeric',month:'long',year:'numeric'}).format(new Date(s+'T12:00:00+08:00'));
+const shortDate = s => new Intl.DateTimeFormat('id-ID',{timeZone:TZ,weekday:'long',day:'numeric',month:'short'}).format(new Date(s+'T12:00:00+08:00'));
+const norm = s => String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,' ').trim();
+const uuid = () => (crypto.randomUUID ? crypto.randomUUID() : 'x'+Date.now().toString(36)+Math.random().toString(36).slice(2));
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+function toast(msg){
+  document.querySelectorAll('.toast').forEach(x => x.remove());
+  const t = document.createElement('div'); t.className='toast'; t.setAttribute('role','status'); t.textContent = msg;
+  document.body.appendChild(t); setTimeout(() => t.remove(), 3200);
+}
+
+/* ====================== API ====================== */
+async function api(action, body = {}){
+  if (DEMO) return demoApi(action, body);
+  const payload = JSON.stringify({ action, ...body });
+  const call = async viaGet => {
+    let res;
+    try{
+      // POST dengan Content-Type text/plain (bawaan) supaya tidak kena CORS preflight di Apps Script
+      res = viaGet
+        ? await fetch(API_URL + '?q=' + encodeURIComponent(payload) + '&t=' + Date.now())
+        : await fetch(API_URL, { method:'POST', body: payload });
+    }catch(e){ const err = new Error('Tidak ada sinyal / server tidak terjangkau.'); err.network = true; throw err; }
+    try{ return await res.json(); }catch{ const err = new Error('Balasan server tidak terbaca.'); err.network = true; throw err; }
+  };
+  let data = await call(LS.get('hbd_viaget', false));
+  // Kalau yang menjawab justru halaman "ping" (POST berubah jadi GET di jalan), ulangi lewat jalur GET dan ingat pilihan ini
+  if (data && data.app === 'Hungry Bird Delivery' && data.serverTime){ LS.set('hbd_viaget', true); data = await call(true); }
+  if (data && data.app === 'Hungry Bird Delivery' && data.serverTime){
+    const err = new Error('Server belum versi terbaru. Minta admin deploy ulang Apps Script (Versi: Baru).'); err.server = true; throw err;
+  }
+  if (!data.ok){ const err = new Error(data.error || 'Terjadi kesalahan.'); err.server = true; throw err; }
+  return data;
+}
+
+/* ====================== STATE ====================== */
+const state = {
+  screen: 'boot', tab: 'antar',
+  customers: LS.get('hbd_customers', []),
+  couriers: LS.get('hbd_couriers', []),
+  drivers: LS.get('hbd_drivers', []),      // daftar supir resmi dari tab Supir
+  pickSupir: null, pickDua: null,
+  session: LS.get('hbd_session', null),     // {kurirId, nama, pin}
+  queue: LS.get('hbd_queue', []),           // kiriman & istirahat yang belum sampai server
+  brk: LS.get('hbd_break', { date: null, used: {}, active: null }), // used: menit per nama (huruf kecil)
+  today: ymd(new Date()),
+  todayList: [], histDate: null, histList: [], histLoading: false,
+  muatan: (c => c && c.date === ymd(new Date()) ? c.list : [])(LS.get('hbd_muatan', null)),   // pengiriman dari Roastery OMS
+  search: '', selected: null, pickCourier: null, loginErr: ''
+};
+const saveQueue = () => LS.set('hbd_queue', state.queue);
+const me = () => state.couriers.find(c => c.id === state.session?.kurirId);
+const needSupir = () => !!me()?.supirManual && !(state.session.supir && state.session.supirDate === state.today);
+const afterAuthScreen = () => needSupir() ? 'supir' : 'main';
+const crew = () => me()?.supirManual ? [state.session.supir, state.session.pendamping].filter(Boolean) : [state.session.nama];
+const crewLabel = () => crew().join(' & ');
+const JATAH = 60;
+const saveBrk = () => LS.set('hbd_break', state.brk);
+function brkReset(){ if (state.brk.date !== state.today){ state.brk = { date: state.today, used: {}, active: null, claims: {} }; saveBrk(); } }
+function mergeBreaks(b){
+  if (!b) return;
+  brkReset();
+  for (const [k, v] of Object.entries(b.used || {})) state.brk.used[k] = Math.max(state.brk.used[k] || 0, v);
+  const pendingStart = state.queue.some(q => q.action === 'breakStart');
+  const pendingEnd = state.queue.some(q => q.action === 'breakEnd');
+  if (b.active && !state.brk.active && !pendingEnd) state.brk.active = { ...b.active, alerted: [] };  // istirahat dimulai dari HP lain
+  if (!b.active && state.brk.active && !pendingStart) state.brk.active = null;                       // sudah ditutup di server
+  state.brk.claims = { ...(state.brk.claims || {}), ...(b.claims || {}) };
+  saveBrk();
+}
+const onBreak = n => !!state.brk.active?.names.some(x => x.toLowerCase() === n.toLowerCase());
+const usedMin = n => (state.brk.used[n.toLowerCase()] || 0);
+function remainingSec(n){
+  let r = (JATAH - usedMin(n)) * 60;
+  if (onBreak(n)) r -= Math.floor((Date.now() - state.brk.active.startAt) / 1000);
+  return r;
+}
+const PENGINGAT_JAM = 4;   // ingatkan istirahat setelah 4 jam sejak kiriman pertama
+const ALASAN = ['Order menumpuk', 'Antar jarak jauh', 'Diminta atasan', 'Lainnya'];
+const claimOf = n => (state.brk.claims || {})[n.toLowerCase()];
+const closedToday = () => { const c = LS.get('hbd_closed', null); return c && c.date === state.today && c.kurirId === state.session?.kurirId ? c : null; };
+function workHours(){
+  const first = todayMerged().filter(e => e.status !== 'Dibatalkan')[0];
+  if (!first) return 0;
+  return (Date.now() - new Date(state.today + 'T' + first.jam + '+08:00').getTime()) / 3600000;
+}
+const dueNames = () => (state.brk.active || closedToday() || workHours() < PENGINGAT_JAM) ? [] : crew().filter(n => usedMin(n) === 0 && !claimOf(n));
+const fmtClock = sec => { const a = Math.abs(sec); return (sec < 0 ? '+' : '') + Math.floor(a/60) + ':' + String(a%60).padStart(2,'0'); };
+const fmtMin = sec => sec >= 0 ? `sisa ${Math.floor(sec/60)} mnt` : `lewat ${Math.ceil(-sec/60)} mnt`;
+
+/* ====================== GPS ====================== */
+const gps = { watch: null, best: null, status: 'idle' };
+function gpsStart(){
+  gps.best = null;
+  if (!('geolocation' in navigator)){ gps.status = 'off'; return updateGps(); }
+  gps.status = 'search'; updateGps();
+  gps.watch = navigator.geolocation.watchPosition(p => {
+    const c = { lat: +p.coords.latitude.toFixed(6), lng: +p.coords.longitude.toFixed(6), acc: Math.round(p.coords.accuracy), t: Date.now() };
+    if (!gps.best || c.acc <= gps.best.acc || Date.now() - gps.best.t > 20000) gps.best = c;
+    gps.status = 'ok'; updateGps();
+  }, e => { if (!gps.best){ gps.status = e.code === 1 ? 'denied' : 'off'; updateGps(); } },
+  { enableHighAccuracy: true, maximumAge: 15000, timeout: 20000 });
+}
+function gpsStop(){ if (gps.watch != null) navigator.geolocation.clearWatch(gps.watch); gps.watch = null; }
+function updateGps(){
+  const el = $('#gps'); if (!el) return;
+  const m = {
+    idle:   ['', 'GPS belum aktif'],
+    search: ['search', 'Mencari lokasi…'],
+    ok:     ['ok', gps.best ? `Lokasi terkunci, akurasi ±${gps.best.acc} m` : 'Lokasi terkunci'],
+    denied: ['off', 'Izin lokasi ditolak. Kiriman tetap tercatat tanpa titik.'],
+    off:    ['off', 'Lokasi tidak tersedia. Kiriman tetap tercatat tanpa titik.']
+  }[gps.status];
+  el.innerHTML = `<span class="dot ${m[0]}"></span><span>${esc(m[1])}</span>`;
+}
+
+/* ====================== DATA ====================== */
+async function loadInit(){
+  try{
+    const d = await api('init');
+    state.customers = d.customers; state.couriers = d.couriers; state.drivers = d.drivers || [];
+    LS.set('hbd_customers', d.customers); LS.set('hbd_couriers', d.couriers); LS.set('hbd_drivers', state.drivers);
+    // Data kurir terbaru bisa mengubah aturan (mis. Supir Manual baru diaktifkan) → cek ulang layar
+    if (state.session){
+      if (!state.couriers.some(c => c.id === state.session.kurirId)) return logout('Akun kurir tidak aktif lagi. Pilih ulang.');
+      if (state.screen === 'main' && needSupir()){ closeSheet(); state.screen = 'supir'; }
+      if (state.screen === 'main' || state.screen === 'supir') render();
+    } else if (state.screen === 'login') render();
+  }catch(e){
+    if (!state.customers.length) toast('Gagal memuat data: ' + e.message);
+  }
+}
+async function loadToday(){
+  if (!state.session) return;
+  try{
+    const d = await api('list', { kurirId: state.session.kurirId, pin: state.session.pin, date: state.today });
+    state.todayList = d.entries;
+    LS.set('hbd_today', { date: state.today, entries: d.entries });
+    state.muatan = d.muatan || [];
+    LS.set('hbd_muatan', { date: state.today, list: state.muatan });
+    mergeBreaks(d.breaks);
+  }catch(e){
+    const c = LS.get('hbd_today', null);
+    if (c && c.date === state.today) state.todayList = c.entries;
+    if (e.server && /PIN|Kurir/.test(e.message)) return logout(e.message);
+  }
+  if (state.screen === 'main') render();
+}
+
+let flushing = false, flushAgain = false;
+async function flushQueue(){
+  if (flushing){ flushAgain = true; return; }
+  if (!state.queue.length || !state.session) return;
+  flushing = true; flushAgain = false;
+  try{
+    for (const q of [...state.queue]){
+      try{
+        const action = q.action || 'deliver';
+        const d = await api(action, { ...q, pin: state.session.pin, offline: q.tries > 0 });
+        state.queue = state.queue.filter(x => x.qid ? x.qid !== q.qid : x.uid !== q.uid);
+        if (action === 'deliver' && d.entry.tanggal === state.today && !state.todayList.some(e => e.uid === d.entry.uid)) state.todayList.push(d.entry);
+        if (action !== 'deliver' && d.breaks){ saveQueue(); mergeBreaks(d.breaks); }
+      }catch(e){
+        q.tries = (q.tries || 0) + 1;
+        if (e.network) break;
+        q.error = e.message;
+      }
+      saveQueue();
+    }
+  } finally { flushing = false; }
+  if (flushAgain && state.queue.length) return flushQueue();   // ada item baru masuk saat sedang mengirim
+  state.todayList.sort((a,b) => a.jam.localeCompare(b.jam));
+  LS.set('hbd_today', { date: state.today, entries: state.todayList });
+  if (state.screen === 'main' && !state.selected && !$('#brksheet')) render();
+}
+
+/* Gabungan: yang sudah di server + yang masih antri di HP */
+function todayMerged(){
+  const pend = state.queue.filter(q => !q.action && q.tanggal === state.today && q.kurirId === state.session?.kurirId)
+    .map(q => ({ uid:q.uid, jam:q.jam, customer:q.customerName, customerId:q.customerId, catatan:q.catatan, penerima:q.penerima, supir:q.supir, pendamping:q.pendamping, shipmentId:q.shipmentId, pending:true, error:q.error }));
+  return [...state.todayList, ...pend].sort((a,b) => a.jam.localeCompare(b.jam));
+}
+function deliveredToday(){
+  const m = {};
+  for (const e of todayMerged()) if (e.status !== 'Dibatalkan') m[e.customerId] = e;
+  return m;
+}
+/* Muatan yang belum dicatat terkirim (termasuk yang masih antri di HP) */
+function openMuatan(){
+  const done = new Set(todayMerged().filter(e => e.status !== 'Dibatalkan' && e.shipmentId).map(e => e.shipmentId));
+  return (state.muatan || []).filter(m => !done.has(m.id));
+}
+const custName = id => (state.customers.find(c => c.id === id) || {}).nama || id;
+
+/* ====================== AKSI ====================== */
+async function markDelivered(){
+  const c = state.selected; if (!c) return;
+  if (needSupir()){ closeSheet(); state.screen = 'supir'; return render(); }
+  const penerima = ($('#penerima')?.value || '').trim().replace(/\s+/g, ' ');
+  if (penerima.length < 2){
+    const f = $('#f-penerima'); f.classList.add('bad');
+    if (!f.querySelector('.hint')) f.insertAdjacentHTML('beforeend', '<div class="hint" role="alert">Tulis nama orang yang menerima barang.</div>');
+    return $('#penerima').focus();
+  }
+  const mem = LS.get('hbd_penerima', {});
+  mem[c.id] = [penerima, ...(mem[c.id] || []).filter(n => n.toLowerCase() !== penerima.toLowerCase())].slice(0, 4);
+  LS.set('hbd_penerima', mem);
+  const btn = $('#go'); btn.disabled = true; btn.textContent = 'Mencatat…';
+  if (!gps.best && gps.status === 'search'){
+    btn.textContent = 'Menunggu GPS…';
+    const until = Date.now() + 6000;
+    while (!gps.best && gps.status === 'search' && Date.now() < until) await sleep(250);
+  }
+  const now = new Date();
+  const shipmentId = document.querySelector('input[name="ship"]:checked')?.value || '';
+  const sm = (state.muatan || []).find(m => m.id === shipmentId);
+  const item = {
+    uid: uuid(), kurirId: state.session.kurirId, customerId: c.id, customerName: c.nama, shipmentId,
+    catatan: ($('#note')?.value || '').trim() || (sm ? [sm.id, sm.isi, sm.invoice].filter(Boolean).join(' · ') : ''), penerima, supir: state.session.supir || '', pendamping: state.session.pendamping || '', deliveredAt: now.toISOString(),
+    tanggal: ymd(now), jam: hms(now),
+    lat: gps.best?.lat ?? null, lng: gps.best?.lng ?? null, acc: gps.best?.acc ?? null, tries: 0
+  };
+  gpsStop();
+  state.queue.push(item); saveQueue();
+  state.selected = null;
+  showStamp(item);
+  await flushQueue();
+  const still = state.queue.find(q => q.uid === item.uid);
+  const el = $('#sync'); if (!el) return;
+  if (!still){ el.className = 'sync ok'; el.textContent = DEMO ? 'Tersimpan (mode demo, tidak masuk Sheet).' : 'Tersimpan di Google Sheet.'; }
+  else if (still.error){ el.className = 'sync danger'; el.textContent = 'Belum tersimpan: ' + still.error; }
+  else { el.className = 'sync warn'; el.textContent = 'Tersimpan di HP. Akan terkirim otomatis saat ada sinyal.'; }
+}
+
+async function cancelEntry(uid){
+  if (!confirm('Batalkan catatan kiriman ini?')) return;
+  try{
+    const d = await api('cancel', { kurirId: state.session.kurirId, pin: state.session.pin, uid });
+    state.todayList = state.todayList.map(e => e.uid === uid ? d.entry : e);
+    toast('Catatan dibatalkan.'); render();
+  }catch(e){ toast(e.message); }
+}
+function dropPending(uid){
+  if (!confirm('Hapus catatan yang belum terkirim ini?')) return;
+  state.queue = state.queue.filter(q => q.uid !== uid); saveQueue(); render();
+}
+
+async function loadHistory(date){
+  state.histDate = date; state.histLoading = true; render();
+  try{
+    const d = await api('list', { kurirId: state.session.kurirId, pin: state.session.pin, date });
+    state.histList = d.entries;
+  }catch(e){ state.histList = []; toast(e.message); }
+  state.histLoading = false; render();
+}
+
+async function doLogin(){
+  const pin = ($('#pin')?.value || '').trim();
+  const k = state.pickCourier; if (!k || !pin) return;
+  const b = $('#login-go'); b.disabled = true; b.textContent = 'Memeriksa…';
+  try{
+    const d = await api('login', { kurirId: k.id, pin });
+    state.session = { kurirId: d.kurir.id, nama: d.kurir.nama, pin };
+    LS.set('hbd_session', state.session);
+    state.tab = 'antar'; state.loginErr = '';
+    state.screen = afterAuthScreen();
+    render(); loadToday(); flushQueue();
+  }catch(e){
+    state.loginErr = e.message; render();
+  }
+}
+function saveSupir(){
+  const clean = v => String(v || '').trim().replace(/\s+/g, ' ');
+  const byList = state.drivers.length > 0;
+  const name = byList ? (state.pickSupir || '') : clean($('#supir')?.value);
+  const dua = byList ? (state.pickDua || '') : clean($('#pendamping')?.value);
+  if (name.length < 2){ state.loginErr = byList ? 'Pilih nama supir dulu.' : 'Tulis nama supir dulu.'; return render(); }
+  if (dua && dua.toLowerCase() === name.toLowerCase()){ state.loginErr = 'Nama supir dan pendamping tidak boleh sama.'; return render(); }
+  if (state.brk.active){ state.loginErr = 'Selesaikan istirahat dulu sebelum ganti kru.'; return render(); }
+  state.session.supir = name; state.session.pendamping = dua; state.session.supirDate = state.today;
+  LS.set('hbd_session', state.session);
+  let recent = LS.get('hbd_supir_names', []);
+  for (const n of [dua, name].filter(Boolean)) recent = [n, ...recent.filter(x => x.toLowerCase() !== n.toLowerCase())];
+  LS.set('hbd_supir_names', recent.slice(0, 10));
+  state.loginErr = ''; state.screen = 'main'; state.tab = 'antar'; state.pickSupir = null; state.pickDua = null;
+  render(); loadToday(); flushQueue();
+}
+function logout(msg){
+  state.session = null; state.muatan = []; LS.del('hbd_muatan'); LS.del('hbd_session'); LS.del('hbd_today'); LS.del('hbd_break'); LS.del('hbd_closed'); LS.del('hbd_remind'); state.brk = { date: null, used: {}, active: null, claims: {} };
+  state.todayList = []; state.screen = 'login'; state.pickCourier = null; state.pickSupir = null; state.pickDua = null; state.loginErr = msg || '';
+  render();
+}
+
+/* ====================== RENDER ====================== */
+function render(){
+  const app = $('#app');
+  const demo = DEMO ? `<div class="demo">Mode demo: data tidak disimpan. Isi API_URL di index.html untuk menyambung ke Google Sheet.</div>` : '';
+  if (state.screen === 'login') { app.innerHTML = demo + loginHTML(); return; }
+  if (state.screen === 'supir') { app.innerHTML = demo + supirHTML(); setTimeout(() => $('#supir')?.focus(), 30); return; }
+  if (state.screen !== 'main') return;
+  const n = todayMerged().filter(e => e.status !== 'Dibatalkan').length;
+  app.innerHTML = demo + `
+    <header class="top">
+      <div class="top-row">
+        <div class="id"><span class="logo sm" role="img" aria-label="Hungry Bird"></span><div><div class="hello">${me()?.supirManual ? esc(state.session.nama) + ', ' + esc(crewLabel() || '-') : 'Halo, ' + esc(state.session.nama)}</div>
+             <div class="date">${esc(shortDate(state.today))}</div></div></div>
+        <div class="topbtns">
+          ${me()?.supirManual ? `<button class="linkbtn" data-act="supir">Ganti kru</button>` : ''}
+          <button class="linkbtn" data-act="logout">Ganti kurir</button>
+        </div>
+      </div>
+      <nav class="tabs" role="tablist">
+        ${tabBtn('antar','Antar')}${tabBtn('hari','Hari ini ('+n+')')}${tabBtn('riwayat','Riwayat')}
+      </nav>
+    </header>
+    <div id="breakbar"></div>
+    <main>${state.tab === 'antar' ? antarHTML() : state.tab === 'hari' ? hariHTML() : riwayatHTML()}</main>`;
+  if (state.tab === 'antar') renderCustList();
+  renderBreak();
+}
+const tabBtn = (id, label) => `<button class="tab" role="tab" aria-selected="${state.tab===id}" data-tab="${id}">${esc(label)}</button>`;
+
+function loginHTML(){
+  const k = state.pickCourier;
+  return `<div class="login">
+    <span class="logo" role="img" aria-label="Hungry Bird"></span>
+    <div class="brand-sub" style="margin-top:18px">Catatan antar Hungry Bird. Pilih nama kamu untuk mulai.</div>
+    <div class="who-list">
+      ${state.couriers.length ? state.couriers.map(c => `
+        <button class="who-btn" data-courier="${esc(c.id)}" aria-pressed="${k && k.id===c.id}">
+          <b>${esc(c.nama)}</b><span>${esc([c.kendaraan, c.divisi].filter(Boolean).join(', '))}</span>
+        </button>`).join('') : `<div class="empty">Belum ada kurir. Isi tab Kurir di Google Sheet, lalu muat ulang halaman ini.</div>`}
+    </div>
+    ${k ? `<div class="field"><label for="pin">PIN ${esc(k.nama)}</label>
+      <input id="pin" class="pin" type="password" inputmode="numeric" autocomplete="off" maxlength="8"></div>
+      <button class="primary" id="login-go" data-act="login">Masuk</button>` : ''}
+    ${state.loginErr ? `<div class="err" role="alert">${esc(state.loginErr)}</div>` : ''}
+  </div>`;
+}
+
+function supirHTML(){
+  const same = state.session.supirDate === state.today;
+  const cur = same ? state.session.supir : '', cur2 = same ? (state.session.pendamping || '') : '';
+  const recent = LS.get('hbd_supir_names', []);
+  if (state.drivers.length){
+    if (state.pickSupir === null){ state.pickSupir = cur; state.pickDua = cur2; }
+    const names = state.drivers.map(d => d.nama);
+    const btn = (n, attr, on, label) => `<button class="who-btn" ${attr}="${esc(n)}" aria-pressed="${on}"><b>${esc(label || n)}</b>${on ? '<span>✓ Dipilih</span>' : ''}</button>`;
+    return `<div class="login">
+      <span class="logo" role="img" aria-label="Hungry Bird" style="width:72px;margin-bottom:16px"></span>
+      <div class="brand">${esc(state.session.nama)}</div>
+      <div class="brand-sub">${esc(shortDate(state.today))}. Siapa yang mengantar hari ini?</div>
+      <div class="field"><label>Supir</label></div>
+      <div class="who-list" style="margin-top:0">${names.map(n => btn(n, 'data-pick-supir', n === state.pickSupir)).join('')}</div>
+      <div class="field"><label>Pendamping <span style="font-weight:400;color:var(--muted)">(kalau berdua)</span></label></div>
+      <div class="who-list" style="margin-top:0">
+        ${btn('', 'data-pick-dua', !state.pickDua, 'Tidak ada, sendiri')}
+        ${names.filter(n => n !== state.pickSupir).map(n => btn(n, 'data-pick-dua', n === state.pickDua)).join('')}
+      </div>
+      <button class="primary" data-act="supir-save">Mulai antar</button>
+      ${cur ? `<button class="ghost" data-act="supir-cancel">Batal, tetap ${esc([cur, cur2].filter(Boolean).join(' & '))}</button>` : ''}
+      <button class="ghost" data-act="logout">Bukan ${esc(state.session.nama)}? Ganti kurir</button>
+      <div class="n" style="margin-top:8px;color:var(--muted);font-size:14px;text-align:center">Nama tidak ada? Minta admin menambahkannya di tab Supir.</div>
+      ${state.loginErr ? `<div class="err" role="alert">${esc(state.loginErr)}</div>` : ''}
+    </div>`;
+  }
+  return `<div class="login">
+    <span class="logo" role="img" aria-label="Hungry Bird" style="width:72px;margin-bottom:16px"></span>
+    <div class="brand">${esc(state.session.nama)}</div>
+    <div class="brand-sub">${esc(shortDate(state.today))}. Siapa yang mengantar hari ini?</div>
+    <div class="field"><label for="supir">Nama supir</label>
+      <input id="supir" type="text" maxlength="40" autocomplete="off" autocapitalize="words" value="${esc(cur)}" placeholder="Tulis nama supir"></div>
+    <div class="field"><label for="pendamping">Nama pendamping <span style="font-weight:400;color:var(--muted)">(kalau berdua)</span></label>
+      <input id="pendamping" type="text" maxlength="40" autocomplete="off" autocapitalize="words" value="${esc(cur2)}" placeholder="Kosongkan kalau sendiri"></div>
+    ${recent.length ? `<div class="n" style="margin-top:14px;color:var(--muted);font-size:14px">Ketuk nama untuk mengisi:</div>
+      <div class="chips">${recent.map(n => `<button class="chip" data-supirname="${esc(n)}">${esc(n)}</button>`).join('')}</div>` : ''}
+    <button class="primary" data-act="supir-save">Mulai antar</button>
+    ${cur ? `<button class="ghost" data-act="supir-cancel">Batal, tetap ${esc([cur, cur2].filter(Boolean).join(' & '))}</button>` : ''}
+    <button class="ghost" data-act="logout">Bukan ${esc(state.session.nama)}? Ganti kurir</button>
+    ${state.loginErr ? `<div class="err" role="alert">${esc(state.loginErr)}</div>` : ''}
+  </div>`;
+}
+
+function muatanHTML(){
+  const list = openMuatan();
+  if (!list.length) return '';
+  let last = null;
+  return `<div class="muatan"><div class="list-head"><b>Muatan hari ini (${list.length})</b></div>
+    ${list.map(m => { const head = (m.rute || 'Tanpa rute') !== last && list.some(x => (x.rute || '') !== (list[0].rute || '')) ? `<div class="ruteh">${esc(last = m.rute || 'Tanpa rute')}</div>` : ''; return head + `<button class="mu" data-ship="${esc(m.id)}">
+      <div><div class="name">${esc(custName(m.customerId))}</div>
+      <div class="sub">${esc(m.isi)}</div>
+      <div class="sub">${esc(m.id)}${m.invoice ? ' · ' + esc(m.invoice) : ''}${m.telat ? ' · <b style="color:var(--danger)">terlambat dari ' + esc(shortDate(m.tgl)) + '</b>' : ''}</div></div>
+      <span class="go">Antar ›</span></button>`; }).join('')}</div>`;
+}
+function antarHTML(){
+  return `${muatanHTML()}<div class="search">
+      <input id="q" type="search" placeholder="Cari customer…" value="${esc(state.search)}" autocomplete="off" aria-label="Cari customer">
+      <div class="count" id="count"></div>
+    </div>
+    <div id="custlist"></div>`;
+}
+function renderCustList(){
+  const box = $('#custlist'); if (!box) return;
+  const q = norm(state.search);
+  const done = deliveredToday();
+  const mu = {};
+  openMuatan().forEach(m => { mu[m.customerId] = (mu[m.customerId] || 0) + 1; });
+  const list = state.customers.filter(c => !q || norm(c.nama + ' ' + c.area + ' ' + c.id).includes(q));
+  $('#count').textContent = `${list.length} customer${q ? ' cocok' : ''}`;
+  box.innerHTML = list.length ? list.map(c => {
+    const d = done[c.id];
+    return `<button class="cust" data-cust="${esc(c.id)}">
+      <div><div class="name">${esc(c.nama)}</div>
+      <div class="sub">${esc(c.area || c.alamat || c.id)}</div></div>
+      ${mu[c.id] ? `<span class="mubadge">${mu[c.id]} muatan</span>` : ''}
+      ${d ? `<span class="minstamp ${d.pending?'pending':''}" title="Sudah diantar hari ini">${esc(d.jam.slice(0,5))}</span>` : ''}
+    </button>`;
+  }).join('') : `<div class="empty">Tidak ada customer dengan nama itu. Cek ejaan, atau minta admin menambahkannya di tab Customer.</div>`;
+}
+
+function entryHTML(e, allowCancel){
+  const pills = [];
+  if (e.pending) pills.push(e.error ? `<span class="pill danger">Gagal: ${esc(e.error)}</span>` : `<span class="pill warn">Menunggu sinyal</span>`);
+  if (e.status === 'Dibatalkan') pills.push(`<span class="pill danger">Dibatalkan</span>`);
+  else if (e.cek){
+    const cls = /^Sesuai|^Titik baru/.test(e.cek) ? 'ok' : /^Jauh|^Tanpa/.test(e.cek) ? 'warn' : '';
+    pills.push(`<span class="pill ${cls}">${esc(e.cek)}</span>`);
+  }
+  let action = '';
+  if (e.pending) action = `<button class="smallbtn" data-drop="${esc(e.uid)}">Hapus</button>`;
+  else if (allowCancel && e.status === 'Terkirim' && e.serverTs && Date.now() - e.serverTs < BATAL_MENIT*60000)
+    action = `<button class="smallbtn" data-cancel="${esc(e.uid)}">Batalkan</button>`;
+  return `<div class="entry ${e.status==='Dibatalkan'?'void':''}">
+    <div class="t">${esc(e.jam.slice(0,5))}</div>
+    <div><div class="c">${esc(e.customer)}</div>
+      ${e.shipmentId ? `<div class="n"><b>${esc(e.shipmentId)}</b></div>` : ''}
+      ${e.penerima ? `<div class="n">Diterima: ${esc(e.penerima)}</div>` : ''}
+      ${e.catatan ? `<div class="n">${esc(e.catatan)}</div>` : ''}
+      ${e.supir ? `<div class="n">Supir: ${esc(e.supir)}${e.pendamping ? ', pendamping: ' + esc(e.pendamping) : ''}</div>` : ''}
+      ${pills.length ? `<div class="pills">${pills.join('')}</div>` : ''}</div>
+    <div>${action}</div>
+  </div>`;
+}
+
+function hariHTML(){
+  const list = todayMerged();
+  const n = list.filter(e => e.status !== 'Dibatalkan').length;
+  return `<div class="list-head"><b>${n} kiriman hari ini</b>
+      ${state.queue.length ? `<button class="smallbtn" data-act="flush" style="color:var(--ink)">Kirim ulang</button>` : ''}</div>
+    ${list.length ? list.map(e => entryHTML(e, true)).join('') : `<div class="empty">Belum ada kiriman hari ini. Buka tab Antar dan pilih customer setelah pesanan diterima.</div>`}
+    ${closedToday() ? `<div class="closed">Hari ini ditutup pukul ${esc(closedToday().jam)}. <button class="linkish" data-act="close-open">Ubah</button></div>`
+      : `<div class="closeday"><div class="n" style="color:var(--muted);font-size:14px">Sudah selesai bertugas hari ini?</div>
+        <button class="primary" data-act="close-open">Selesai hari ini</button></div>`}`;
+}
+
+function riwayatHTML(){
+  const d = state.histDate || state.today;
+  const n = state.histList.filter(e => e.status !== 'Dibatalkan').length;
+  return `<div class="list-head">
+      <b>${state.histLoading ? 'Memuat…' : n + ' kiriman'}</b>
+      <input type="date" id="hdate" value="${esc(d)}" max="${esc(state.today)}" aria-label="Pilih tanggal">
+    </div>
+    <div class="n" style="padding:10px 16px 0;color:var(--muted)">${esc(longDate(d))}</div>
+    ${!state.histLoading && state.histList.length ? state.histList.map(e => entryHTML(e, false)).join('')
+      : state.histLoading ? '' : `<div class="empty">Tidak ada kiriman di tanggal ini.</div>`}`;
+}
+
+function openSheet(c, preShip){
+  state.selected = c;
+  const ships = openMuatan().filter(m => m.customerId === c.id);
+  const pick = preShip || (ships[0] && ships[0].id) || '';
+  const shipField = ships.length ? `<div class="field"><label>Pengiriman yang diantar</label>
+      ${ships.map(m => `<label class="shipopt"><input type="radio" name="ship" value="${esc(m.id)}" ${m.id === pick ? 'checked' : ''}>
+        <div><b>${esc(m.id)}${m.invoice ? ' · ' + esc(m.invoice) : ''}</b><span>${esc(m.isi)}</span></div></label>`).join('')}
+      <label class="shipopt"><input type="radio" name="ship" value="" ${pick ? '' : 'checked'}><div><b>Kiriman lain</b><span>Tidak ada di daftar muatan</span></div></label>
+    </div>` : '';
+  const done = deliveredToday()[c.id];
+  const maps = c.lat != null && c.lng != null ? `https://www.google.com/maps/dir/?api=1&destination=${c.lat},${c.lng}` : '';
+  const div = document.createElement('div'); div.id = 'sheetwrap';
+  div.innerHTML = `<div class="scrim" data-act="close"></div>
+    <section class="sheet" role="dialog" aria-modal="true" aria-labelledby="sh-t">
+      <h2 id="sh-t">${esc(c.nama)}</h2>
+      <div class="addr">${esc(c.alamat || c.area || 'Alamat belum diisi')}${maps ? `<br><a href="${maps}" target="_blank" rel="noopener">Buka rute di Maps</a>` : ''}</div>
+      ${done ? `<div class="pills"><span class="pill warn">Sudah dicatat hari ini pukul ${esc(done.jam.slice(0,5))}</span></div>` : ''}
+      ${shipField}
+      <div class="field" id="f-penerima"><label for="penerima">Nama penerima <span class="req">*</span></label>
+        <input id="penerima" type="text" maxlength="60" placeholder="Contoh: Kadek (barista)" autocomplete="off" autocapitalize="words" enterkeyhint="next">
+        ${(LS.get('hbd_penerima', {})[c.id] || []).length ? `<div class="chips">${LS.get('hbd_penerima', {})[c.id].map(n => `<button class="chip" data-penerima="${esc(n)}">${esc(n)}</button>`).join('')}</div>` : ''}
+      </div>
+      <div class="field"><label for="note">Catatan atau no. nota (opsional)</label>
+        <input id="note" type="text" maxlength="120" placeholder="${ships.length ? 'Kosongkan: terisi otomatis dari muatan' : 'Contoh: INV-0921, 2 kg beans'}" autocomplete="off"></div>
+      <div class="gps" id="gps" aria-live="polite"></div>
+      <button class="primary" id="go" data-act="deliver">Tandai terkirim</button>
+      <button class="ghost" data-act="close">Tutup</button>
+    </section>`;
+  document.body.appendChild(div);
+  gpsStart();
+  $('#penerima').focus();
+}
+function closeSheet(){ gpsStop(); state.selected = null; $('#sheetwrap')?.remove(); }
+
+function showStamp(item){
+  $('#sheetwrap')?.remove();
+  const div = document.createElement('div'); div.id = 'stampwrap';
+  div.innerHTML = `<div class="stampview" role="dialog" aria-modal="true" aria-label="Kiriman tercatat">
+    <div class="stamp"><div class="w">TERKIRIM</div><div class="h">${esc(item.jam.slice(0,5))}</div><div class="d">${esc(shortDate(item.tanggal))}</div></div>
+    <div class="who">${esc(item.customerName)}</div>
+    ${item.shipmentId ? `<div class="by"><b>${esc(item.shipmentId)}</b></div>` : ''}
+    <div class="by">diterima ${esc(item.penerima)}</div>
+    <div class="by">diantar oleh ${esc(item.supir ? [item.supir, item.pendamping].filter(Boolean).join(' & ') + ' (' + state.session.nama + ')' : state.session.nama)}${item.lat != null ? `, titik ±${item.acc} m` : ', tanpa titik GPS'}</div>
+    <div class="sync warn" id="sync" aria-live="polite">Menyimpan ke Google Sheet…</div>
+    <button class="primary" data-act="stamp-done">Selesai</button>
+  </div>`;
+  document.body.appendChild(div);
+  if (navigator.vibrate) navigator.vibrate(60);
+}
+
+/* ====================== ISTIRAHAT ====================== */
+function renderBreak(){
+  const bar = $('#breakbar'); if (!bar || !state.session) return;
+  brkReset();
+  const a = state.brk.active, names = crew();
+  const all = a && names.every(onBreak);
+  // Seluruh kru istirahat → layar istirahat penuh (catat kiriman dikunci)
+  let view = $('#breakwrap');
+  if (all && !view){
+    view = document.createElement('div'); view.id = 'breakwrap';
+    document.body.appendChild(view);
+  }
+  if (!all && view) view.remove();
+  if (all){
+    const low = Math.min(...a.names.map(remainingSec));
+    const endAt = new Date(a.startAt + Math.min(...a.names.map(n => (JATAH - usedMin(n)) * 60000)));
+    view.innerHTML = `<div class="breakview" role="dialog" aria-modal="true" aria-label="Sedang istirahat">
+      <div class="lbl">${low >= 0 ? 'Sisa istirahat' : 'Istirahat lewat batas'}</div>
+      <div class="clock ${low < 0 ? 'over' : low < 300 ? 'warn' : ''}" id="bclock">${fmtClock(low)}</div>
+      <div class="sub">${low >= 0 ? `Kembali paling lambat pukul <b>${esc(hms(endAt).slice(0,5))}</b>` : 'Segera kembali bekerja'}</div>
+      <div class="names"><div id="bnames">${breakNames(a)}</div>
+        <div>Mulai ${esc(hms(new Date(a.startAt)).slice(0,5))}</div></div>
+      <button class="primary" data-act="break-end">Selesai istirahat</button>
+    </div>`;
+    bar.innerHTML = '';
+    return;
+  }
+  if (a){
+    const low = Math.min(...a.names.map(remainingSec));
+    bar.className = 'breakbar ' + (low < 0 ? 'over' : 'on');
+    bar.innerHTML = `<div class="bl"><b>${esc(a.names.join(' & '))} istirahat, ${esc(fmtMin(low))}</b><br>Mulai ${esc(hms(new Date(a.startAt)).slice(0,5))}</div>
+      <button class="bbtn solid" data-act="break-end">Selesai</button>`;
+    return;
+  }
+  const due = dueNames();
+  const claimed = names.filter(n => claimOf(n)?.jenis === 'Tidak sempat');
+  const canClaim = !closedToday() && names.some(n => remainingSec(n) > 0 && !['Disetujui','Ditolak'].includes(claimOf(n)?.status));
+  bar.className = 'breakbar' + (due.length ? ' due' : '');
+  bar.innerHTML = `<div class="bl">${due.length ? `Belum istirahat, sudah ${Math.floor(workHours())} jam sejak kiriman pertama` : 'Istirahat hari ini'}<br>
+      <b>${names.map(n => (names.length > 1 ? esc(n) + ' ' : '') + esc(fmtMin(remainingSec(n)))).join(', ')}</b>
+      ${claimed.length ? `<br>Klaim tidak sempat istirahat: ${esc(claimed.map(n => n + ' (' + (claimOf(n).status || 'menunggu') + ')').join(', '))}` : ''}
+      ${canClaim ? `<br><button class="linkish" data-act="nobreak-open">Tidak bisa istirahat?</button>` : ''}</div>
+    <button class="bbtn" data-act="break-open">Istirahat</button>`;
+}
+
+function breakNames(a){ return a.names.length > 1 ? a.names.map(n => `${esc(n)}: ${esc(fmtMin(remainingSec(n)))}`).join('<br>') : ''; }
+
+function openBreakSheet(){
+  if (needSupir()){ state.screen = 'supir'; return render(); }
+  const names = crew();
+  const div = document.createElement('div'); div.id = 'brksheet';
+  div.innerHTML = `<div class="scrim" data-act="break-close"></div>
+    <section class="sheet" role="dialog" aria-modal="true" aria-labelledby="bk-t">
+      <h2 id="bk-t">Mulai istirahat</h2>
+      <div class="addr">Jatah ${JATAH} menit per orang per hari, boleh dipecah beberapa kali.</div>
+      <div style="margin-top:10px">${names.map((n, i) => `
+        <label class="check"><input type="checkbox" name="bk" value="${esc(n)}" checked ${names.length === 1 ? 'disabled' : ''}>
+          <span>${esc(n)}</span><span class="rest">${esc(fmtMin(remainingSec(n)))}</span></label>`).join('')}</div>
+      ${names.length > 1 ? `<div class="addr" style="margin-top:8px">Hapus centang kalau hanya satu orang yang istirahat.</div>` : ''}
+      <button class="primary" data-act="break-start">Mulai istirahat</button>
+      <button class="ghost" data-act="break-close">Batal</button>
+    </section>`;
+  document.body.appendChild(div);
+}
+
+/* ---------- Tidak bisa istirahat (dilaporkan saat itu juga) ---------- */
+function reasonFields(prefix, cur){
+  const val = cur && ALASAN.includes(cur) ? cur : (cur ? 'Lainnya' : '');
+  return `<select id="${prefix}-sel" aria-label="Alasan">
+      <option value="">Pilih alasan…</option>${ALASAN.map(a => `<option ${a === val ? 'selected' : ''}>${a}</option>`).join('')}</select>
+    <input type="text" class="wide" id="${prefix}-txt" maxlength="150" placeholder="Tulis alasannya" value="${esc(val === 'Lainnya' ? cur : '')}" style="${val === 'Lainnya' ? '' : 'display:none'}">`;
+}
+function readReason(prefix){
+  const sel = $('#' + prefix + '-sel')?.value || '';
+  const txt = ($('#' + prefix + '-txt')?.value || '').trim();
+  return sel === 'Lainnya' ? txt : sel;
+}
+function openNoBreak(){
+  if (needSupir()){ state.screen = 'supir'; return render(); }
+  const names = crew().filter(n => remainingSec(n) > 0 && !['Disetujui','Ditolak'].includes(claimOf(n)?.status));
+  const div = document.createElement('div'); div.id = 'brksheet';
+  div.innerHTML = `<div class="scrim" data-act="break-close"></div>
+    <section class="sheet" role="dialog" aria-modal="true" aria-labelledby="nb-t">
+      <h2 id="nb-t">Tidak bisa istirahat</h2>
+      <div class="addr">Laporan ini dikirim ke supervisor untuk disetujui sebagai lembur. Hanya berlaku untuk hari ini.</div>
+      <div style="margin-top:10px">${names.map(n => `
+        <label class="check"><input type="checkbox" name="nb" value="${esc(n)}" checked ${names.length === 1 ? 'disabled' : ''}>
+          <span>${esc(n)}</span><span class="rest">${esc(fmtMin(remainingSec(n)))}</span></label>`).join('')}</div>
+      <div class="field"><label for="nb-sel">Alasan</label>${reasonFields('nb', claimOf(names[0] || '')?.alasan)}</div>
+      <div class="addr" style="margin-top:10px">Kalau nanti ternyata sempat, tetap tekan <b>Istirahat</b>. Menit klaim akan dikurangi otomatis.</div>
+      <button class="primary" data-act="nobreak-send">Kirim laporan</button>
+      <button class="ghost" data-act="break-close">Batal</button>
+    </section>`;
+  document.body.appendChild(div);
+}
+function sendNoBreak(){
+  const names = [...document.querySelectorAll('input[name=nb]')].filter(x => x.checked).map(x => x.value);
+  const alasan = readReason('nb');
+  if (!names.length) return toast('Pilih siapa yang tidak bisa istirahat.');
+  if (alasan.length < 3) return toast('Pilih atau tulis alasannya dulu.');
+  queueClaim('Tidak sempat', names.map(n => ({ nama: n, alasan })));
+  $('#brksheet')?.remove();
+  toast('Laporan terkirim ke supervisor.');
+  render();
+}
+function queueClaim(jenis, items){
+  const now = new Date();
+  state.queue.push({ qid: uuid(), action: 'claim', kurirId: state.session.kurirId, jenis, items, at: now.toISOString(), tanggal: ymd(now) });
+  saveQueue();
+  state.brk.claims = state.brk.claims || {};
+  for (const it of items){
+    state.brk.claims[it.nama.toLowerCase()] = { jenis, status: jenis === 'Tidak sempat' ? 'Menunggu persetujuan' : 'Tercatat', diajukan: hms(now).slice(0,5), alasan: it.alasan || '' };
+    if (jenis === 'Lupa catat') state.brk.used[it.nama.toLowerCase()] = usedMin(it.nama) + (+it.perkiraan || 0);
+  }
+  saveBrk();
+  flushQueue();
+}
+
+/* ---------- Selesai hari ini (tutup hari) ---------- */
+function openCloseDay(){
+  if (state.brk.active) return toast('Selesaikan istirahat dulu.');
+  if (needSupir()){ state.screen = 'supir'; return render(); }
+  const people = crew().map(n => ({ n, rest: Math.max(0, Math.ceil(remainingSec(n) / 60)), c: claimOf(n) }));
+  const div = document.createElement('div'); div.id = 'brksheet';
+  div.innerHTML = `<div class="scrim" data-act="break-close"></div>
+    <section class="sheet" role="dialog" aria-modal="true" aria-labelledby="cd-t">
+      <h2 id="cd-t">Selesai hari ini</h2>
+      <div class="addr">${esc(longDate(state.today))}. Cek istirahat sebelum pulang.</div>
+      ${people.map((p, i) => {
+        const locked = ['Disetujui','Ditolak'].includes(p.c?.status);
+        if (p.rest <= 0) return `<div class="person"><h3>${esc(p.n)}</h3><div class="meta">Istirahat lengkap ${JATAH} menit ✓</div></div>`;
+        if (locked) return `<div class="person"><h3>${esc(p.n)}</h3><div class="meta">Klaim sudah ${esc(p.c.status.toLowerCase())} supervisor.</div></div>`;
+        const pre = p.c?.jenis === 'Tidak sempat' ? 'ts' : p.c?.jenis === 'Lupa catat' ? 'lupa' : '';
+        return `<div class="person" data-person="${esc(p.n)}" data-rest="${p.rest}">
+          <h3>${esc(p.n)}</h3>
+          <div class="meta">Istirahat tercatat ${usedMin(p.n)} dari ${JATAH} menit.</div>
+          <label class="opt"><input type="radio" name="cd-${i}" value="ts" ${pre === 'ts' ? 'checked' : ''}>
+            <span>Tidak sempat istirahat<br><span class="meta">Ajukan klaim ${p.rest} menit ke supervisor</span></span></label>
+          <div class="cd-ts" style="${pre === 'ts' ? '' : 'display:none'}">${reasonFields('cd' + i, p.c?.jenis === 'Tidak sempat' ? p.c.alasan : '')}</div>
+          <label class="opt"><input type="radio" name="cd-${i}" value="lupa" ${pre === 'lupa' ? 'checked' : ''}>
+            <span>Sebenarnya istirahat, lupa mencatat<br><span class="meta">Tidak bisa diajukan sebagai lembur</span></span></label>
+          <div class="cd-lupa" style="${pre === 'lupa' ? '' : 'display:none'}"><input type="number" id="cd${i}-min" min="1" max="${p.rest}" inputmode="numeric" placeholder="Perkiraan berapa menit?"></div>
+          <label class="opt"><input type="radio" name="cd-${i}" value="ok"><span>Tidak ada klaim</span></label>
+        </div>`;
+      }).join('')}
+      <button class="primary" data-act="close-send">Selesai hari ini</button>
+      <button class="ghost" data-act="break-close">Batal</button>
+    </section>`;
+  document.body.appendChild(div);
+}
+function sendCloseDay(){
+  const ts = [], lupa = [];
+  for (const [i, el] of [...document.querySelectorAll('.person[data-person]')].entries()){
+    const n = el.dataset.person, idx = el.querySelector('input[type=radio]').name.slice(3);
+    const pick = el.querySelector('input[type=radio]:checked')?.value;
+    if (!pick) return toast(`Pilih salah satu untuk ${n}.`);
+    if (pick === 'ts'){
+      const alasan = readReason('cd' + idx);
+      if (alasan.length < 3) return toast(`Tulis alasan tidak sempat istirahat untuk ${n}.`);
+      ts.push({ nama: n, alasan });
+    }
+    if (pick === 'lupa'){
+      const m = parseInt($('#cd' + idx + '-min')?.value, 10);
+      if (!m || m < 1) return toast(`Isi perkiraan menit istirahat ${n}.`);
+      lupa.push({ nama: n, perkiraan: Math.min(m, +el.dataset.rest) });
+    }
+  }
+  if (ts.length) queueClaim('Tidak sempat', ts);
+  if (lupa.length) queueClaim('Lupa catat', lupa);
+  LS.set('hbd_closed', { date: state.today, kurirId: state.session.kurirId, jam: hms(new Date()).slice(0,5) });
+  $('#brksheet')?.remove();
+  toast(ts.length ? 'Hari ini ditutup. Klaim dikirim ke supervisor.' : 'Hari ini ditutup. Terima kasih!');
+  render();
+}
+
+/* ---------- Pengingat istirahat ---------- */
+function reminderCheck(){
+  if (!state.session || state.screen !== 'main') return;
+  const due = dueNames(); if (!due.length) return;
+  const r = LS.get('hbd_remind', {});
+  if (r.date === state.today && Date.now() - r.last < 3600000) return;
+  LS.set('hbd_remind', { date: state.today, last: Date.now() });
+  notify('Belum istirahat', `${due.join(' & ')} sudah ${Math.floor(workHours())} jam bekerja sejak kiriman pertama. Istirahat dulu, atau tekan "Tidak bisa istirahat".`);
+  renderBreak();
+}
+setInterval(reminderCheck, 30000);
+
+let audioCtx = null;
+async function startBreak(){
+  const names = [...document.querySelectorAll('input[name=bk]')].filter(x => x.checked).map(x => x.value);
+  if (!names.length) return toast('Pilih siapa yang istirahat.');
+  const habis = names.filter(n => remainingSec(n) <= 0);
+  if (habis.length && !confirm(`Jatah istirahat ${habis.join(' & ')} sudah habis. Tetap mulai? Waktunya akan tercatat lewat batas.`)) return;
+  try{ audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)(); }catch{}
+  askNotif();
+  const btn = document.querySelector('[data-act="break-start"]'); if (btn){ btn.disabled = true; btn.textContent = 'Memulai…'; }
+  const pos = await quickFix(3000);
+  const now = Date.now(), uid = uuid();
+  // Tandai ambang yang sudah terlewati supaya tidak langsung berbunyi
+  const alerted = [];
+  for (const n of names) for (const m of [10, 5, 0]) if (remainingSec(n) <= m * 60) alerted.push(n + '|' + m);
+  state.brk.active = { uid, names, startAt: now, alerted };
+  saveBrk();
+  state.queue.push({ qid: uuid(), action: 'breakStart', uid, kurirId: state.session.kurirId, names, startAt: new Date(now).toISOString(), lat: pos?.lat ?? null, lng: pos?.lng ?? null });
+  saveQueue();
+  $('#brksheet')?.remove();
+  render();
+  flushQueue();
+}
+
+function endBreak(){
+  const a = state.brk.active; if (!a) return;
+  const now = Date.now();
+  const mins = Math.max(1, Math.ceil((now - a.startAt) / 60000));   // sama dengan server: per menit, dibulatkan ke atas
+  for (const n of a.names) state.brk.used[n.toLowerCase()] = usedMin(n) + mins;
+  state.brk.active = null; saveBrk();
+  state.queue.push({ qid: uuid(), action: 'breakEnd', uid: a.uid, kurirId: state.session.kurirId, endAt: new Date(now).toISOString() });
+  saveQueue();
+  $('#breakwrap')?.remove();
+  toast(`Istirahat ${mins} menit. ` + a.names.map(n => (a.names.length > 1 ? n + ' ' : '') + fmtMin(remainingSec(n))).join(', ') + '.');
+  render();
+  flushQueue();
+}
+
+function quickFix(ms){
+  return new Promise(res => {
+    if (!('geolocation' in navigator)) return res(null);
+    const t = setTimeout(() => res(null), ms);
+    navigator.geolocation.getCurrentPosition(p => { clearTimeout(t); res({ lat: +p.coords.latitude.toFixed(6), lng: +p.coords.longitude.toFixed(6) }); },
+      () => { clearTimeout(t); res(null); }, { enableHighAccuracy: true, maximumAge: 60000, timeout: ms });
+  });
+}
+
+/* Notifikasi sisa waktu: bunyi + getar + notifikasi HP (kalau diizinkan) */
+let swReg = null;
+if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').then(r => swReg = r).catch(() => {});
+function askNotif(){ try{ if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission(); }catch{} }
+function beep(){
+  try{
+    if (!audioCtx) return; audioCtx.resume?.();
+    [0, 0.35, 0.7].forEach(t => {
+      const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+      o.frequency.value = 880; o.connect(g); g.connect(audioCtx.destination);
+      g.gain.setValueAtTime(0.25, audioCtx.currentTime + t); g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + t + 0.25);
+      o.start(audioCtx.currentTime + t); o.stop(audioCtx.currentTime + t + 0.26);
+    });
+  }catch{}
+}
+function notify(title, body){
+  toast(title + '. ' + body);
+  if (navigator.vibrate) navigator.vibrate([300, 150, 300, 150, 300]);
+  beep();
+  try{
+    if ('Notification' in window && Notification.permission === 'granted'){
+      const opt = { body, tag: 'hb-istirahat', renotify: true, icon: document.querySelector('link[rel=apple-touch-icon]')?.href };
+      if (swReg) swReg.showNotification(title, opt); else new Notification(title, opt);
+    }
+  }catch{}
+}
+function breakTick(){
+  const a = state.brk.active;
+  if (!a || !state.session) return;
+  if (state.brk.date !== ymd(new Date())) return;   // ganti hari ditangani visibilitychange
+  for (const m of [10, 5, 0]){
+    const who = a.names.filter(n => remainingSec(n) <= m * 60 && !a.alerted.includes(n + '|' + m));
+    if (!who.length) continue;
+    who.forEach(n => a.alerted.push(n + '|' + m)); saveBrk();
+    const siapa = a.names.length > 1 ? who.join(' & ') + ': ' : '';
+    if (m > 0) notify(`Sisa istirahat ${m} menit`, `${siapa}siap-siap kembali, ya.`);
+    else notify('Waktu istirahat habis', `${siapa}jatah ${JATAH} menit hari ini sudah terpakai. Tekan Selesai istirahat.`);
+  }
+  const clock = $('#bclock');
+  if (clock){
+    const low = Math.min(...a.names.map(remainingSec));
+    clock.textContent = fmtClock(low);
+    clock.className = 'clock ' + (low < 0 ? 'over' : low < 300 ? 'warn' : '');
+    const bn = $('#bnames'); if (bn) bn.innerHTML = breakNames(a);
+    if (low < 0 && !clock.dataset.over){ clock.dataset.over = 1; renderBreak(); }
+  } else if (Date.now() % 15000 < 1000) renderBreak();
+  document.title = `☕ ${fmtClock(Math.min(...a.names.map(remainingSec)))} · HB Delivery`;
+}
+setInterval(() => { breakTick(); if (!state.brk.active && document.title !== 'Hungry Bird Delivery') document.title = 'Hungry Bird Delivery'; }, 1000);
+
+/* ====================== EVENT ====================== */
+document.addEventListener('click', e => {
+  const t = e.target.closest('[data-act],[data-tab],[data-cust],[data-ship],[data-courier],[data-cancel],[data-drop],[data-supirname],[data-penerima],[data-pick-supir],[data-pick-dua]');
+  if (!t) return;
+  if (t.dataset.tab){
+    state.tab = t.dataset.tab; render();
+    if (state.tab === 'hari') loadToday();
+    if (state.tab === 'riwayat') loadHistory(state.histDate || state.today);
+    return;
+  }
+  if (t.dataset.cust){ const c = state.customers.find(x => x.id === t.dataset.cust); if (c) openSheet(c); return; }
+  if (t.dataset.ship){
+    const m = (state.muatan || []).find(x => x.id === t.dataset.ship);
+    const c = m && state.customers.find(x => x.id === m.customerId);
+    if (c) openSheet(c, m.id); else toast('Customer untuk pengiriman ini belum ada di daftar. Muat ulang halaman.');
+    return;
+  }
+  if (t.dataset.courier){ state.pickCourier = state.couriers.find(x => x.id === t.dataset.courier); state.loginErr=''; render(); setTimeout(()=>$('#pin')?.focus(), 30); return; }
+  if (t.dataset.pickSupir !== undefined){
+    state.pickSupir = t.dataset.pickSupir; if (state.pickDua === state.pickSupir) state.pickDua = '';
+    state.loginErr = ''; const y = window.scrollY; render(); window.scrollTo(0, y); return;
+  }
+  if (t.dataset.pickDua !== undefined){ state.pickDua = t.dataset.pickDua; state.loginErr = ''; const y = window.scrollY; render(); window.scrollTo(0, y); return; }
+  if (t.dataset.supirname){
+    const a = $('#supir'), b2 = $('#pendamping'), n = t.dataset.supirname;
+    const target = !a.value.trim() ? a : (!b2.value.trim() && a.value.trim().toLowerCase() !== n.toLowerCase()) ? b2 : null;
+    if (target) target.value = n; else toast('Kosongkan salah satu kolom dulu.');
+    return;
+  }
+  if (t.dataset.penerima){ const i = $('#penerima'); i.value = t.dataset.penerima; $('#f-penerima').classList.remove('bad'); $('#f-penerima .hint')?.remove(); return $('#note').focus(); }
+  if (t.dataset.cancel) return cancelEntry(t.dataset.cancel);
+  if (t.dataset.drop) return dropPending(t.dataset.drop);
+  switch (t.dataset.act){
+    case 'close': return closeSheet();
+    case 'deliver': return markDelivered();
+    case 'stamp-done': $('#stampwrap')?.remove(); state.tab = 'antar'; state.search = ''; return render();
+    case 'login': return doLogin();
+    case 'supir': state.loginErr = ''; state.pickSupir = null; state.pickDua = null; state.screen = 'supir'; return render();
+    case 'break-open': return openBreakSheet();
+    case 'break-close': return $('#brksheet')?.remove();
+    case 'break-start': return startBreak();
+    case 'break-end': return endBreak();
+    case 'nobreak-open': return openNoBreak();
+    case 'nobreak-send': return sendNoBreak();
+    case 'close-open': return openCloseDay();
+    case 'close-send': return sendCloseDay();
+    case 'supir-save': return saveSupir();
+    case 'supir-cancel': state.pickSupir = null; state.pickDua = null; state.screen = 'main'; return render();
+    case 'logout': if (state.brk.active) return toast('Selesaikan istirahat dulu sebelum ganti kurir.');
+      if (!state.queue.length || confirm('Masih ada kiriman yang belum terkirim ke server. Tetap ganti kurir?')) logout(); return;
+    case 'flush': flushQueue().then(() => toast(state.queue.length ? 'Masih ada yang belum terkirim.' : 'Semua sudah terkirim.')); return;
+  }
+});
+document.addEventListener('input', e => {
+  if (e.target.id === 'q'){ state.search = e.target.value; renderCustList(); }
+  if (e.target.id === 'penerima' && e.target.value.trim()){ $('#f-penerima')?.classList.remove('bad'); $('#f-penerima .hint')?.remove(); }
+});
+document.addEventListener('change', e => {
+  if (e.target.matches('select[id$="-sel"]')){ const t = $('#' + e.target.id.replace('-sel', '-txt')); if (t){ t.style.display = e.target.value === 'Lainnya' ? '' : 'none'; if (e.target.value === 'Lainnya') t.focus(); } }
+  if (e.target.matches('.person input[type=radio]')){
+    const p = e.target.closest('.person');
+    p.querySelector('.cd-ts').style.display = e.target.value === 'ts' ? '' : 'none';
+    p.querySelector('.cd-lupa').style.display = e.target.value === 'lupa' ? '' : 'none';
+  }
+  if (e.target.id === 'hdate' && e.target.value) loadHistory(e.target.value);
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && e.target.id === 'pin') doLogin();
+  if (e.key === 'Enter' && (e.target.id === 'supir' || e.target.id === 'pendamping')) saveSupir();
+  if (e.key === 'Enter' && e.target.id === 'note') markDelivered();
+  if (e.key === 'Enter' && e.target.id === 'penerima'){ e.preventDefault(); $('#note')?.focus(); }
+  if (e.key === 'Escape' && state.selected) closeSheet();
+  if (e.key === 'Escape' && $('#brksheet')) $('#brksheet').remove();
+});
+window.addEventListener('online', flushQueue);
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState !== 'visible') return;
+  const t = ymd(new Date());
+  if (t !== state.today){ if (state.brk.active){ state.brk.active = null; saveBrk(); $('#breakwrap')?.remove(); toast('Istirahat kemarin tidak ditutup. Tercatat "Tidak ditutup".'); } state.today = t; state.todayList = []; brkReset(); if (state.session && needSupir()){ closeSheet(); state.screen = 'supir'; render(); } loadToday(); }  // lewat tengah malam → tanggal ganti otomatis
+  flushQueue();
+});
+setInterval(() => { if (state.queue.length) flushQueue(); }, 30000);
+
+/* ====================== MULAI ====================== */
+(async function boot(){
+  if (!state.customers.length || !state.couriers.length) await loadInit(); else loadInit();
+  if (state.session){ state.screen = afterAuthScreen(); render(); loadToday(); flushQueue(); }
+  else { state.screen = 'login'; render(); }
+})();
+
+/* ====================== MODE DEMO ======================
+   Hanya dipakai kalau API_URL belum diisi. Meniru perilaku Apps Script. */
+function demoApi(action, b){
+  const db = demoApi.db || (demoApi.db = {
+    couriers: [
+      { id:'K-01', nama:'Kurir Mobil 1', kendaraan:'Mobil', divisi:'Semua', pin:'1234', supirManual:true },
+      { id:'K-02', nama:'Kurir Mobil 2', kendaraan:'Mobil', divisi:'Semua', pin:'1234', supirManual:true },
+      { id:'K-03', nama:'Kurir Motor Kopi', kendaraan:'Motor', divisi:'Hungry Bird', pin:'1234' },
+      { id:'K-04', nama:'Kurir Motor Pastry', kendaraan:'Motor', divisi:'Lazy Hands', pin:'1234' }
+    ],
+    customers: ['12bArs Coffeeshop','A Bit More','Acai Shop','Bali de Uma','Bam Bam Padel Ubud','Capucine Bakery','Dawn Canggu','Doppio Cafe','Dulu Coffee Canggu','Flock Ubud','Goemerot Jimbaran','Hygge Coffee','Kabak Cafe','Little Ripper Bali']
+      .map((n,i) => ({ id:'C-'+String(i+1).padStart(3,'0'), nama:n, area:'', alamat:'', lat:null, lng:null })),
+    drivers: [{id:'S-01',nama:'Aldo'},{id:'S-02',nama:'Bram'},{id:'S-03',nama:'Fathur'},{id:'S-04',nama:'Wirya'}],
+    log: [], breaks: []
+  });
+  const wait = sleep(350);
+  const auth = () => { const k = db.couriers.find(c => c.id === b.kurirId); if (!k || k.pin !== String(b.pin)) { const e = new Error('PIN salah.'); e.server = true; throw e; } return k; };
+  return wait.then(() => {
+    if (action === 'init') return { ok:true, drivers: db.drivers, customers: db.customers, couriers: db.couriers.map(({pin, ...c}) => c) };
+    if (action === 'login'){ const k = auth(); return { ok:true, kurir:{ id:k.id, nama:k.nama } }; }
+    const info = (k, date) => {
+      const used = {}; let active = null;
+      for (const r of db.breaks.filter(r => r.tanggal === date)){
+        if (r.status === 'Selesai') used[r.nama.toLowerCase()] = (used[r.nama.toLowerCase()] || 0) + r.durasi;
+        if (r.status === 'Berjalan' && r.kurirId === k.id){ active = active || { uid:r.uid, names:[], startAt:r.startAt }; if (active.uid === r.uid) active.names.push(r.nama); }
+      }
+      return { jatah:60, used, active };
+    };
+    if (action === 'list'){ const k = auth(); return { ok:true, entries: db.log.filter(e => e.kurirId === b.kurirId && e.tanggal === b.date), breaks: info(k, b.date) }; }
+    if (action === 'breakStart'){ const k = auth(); const t = new Date(b.startAt);
+      if (!db.breaks.some(r => r.uid === b.uid)) b.names.forEach(n => db.breaks.push({ uid:b.uid, tanggal:ymd(t), kurirId:k.id, nama:n, startAt:t.getTime(), status:'Berjalan', durasi:0 }));
+      return { ok:true, breaks: info(k, ymd(t)) }; }
+    if (action === 'claim'){ const k = auth(); db.claims = db.claims || {};
+      b.items.forEach(it => { if (b.jenis === 'Lupa catat') db.breaks.push({ uid:'LUPA', tanggal:b.tanggal, kurirId:k.id, nama:it.nama, startAt:0, status:'Selesai', durasi:+it.perkiraan });
+        db.claims[it.nama.toLowerCase()] = { jenis:b.jenis, status: b.jenis === 'Lupa catat' ? 'Tercatat' : 'Menunggu persetujuan', alasan: it.alasan || '' }; });
+      const inf = info(k, b.tanggal); inf.claims = db.claims; return { ok:true, breaks: inf }; }
+    if (action === 'breakEnd'){ const k = auth(); const end = new Date(b.endAt).getTime(); let tgl = ymd(new Date(end));
+      db.breaks.filter(r => r.uid === b.uid && r.status === 'Berjalan').forEach(r => { r.status = 'Selesai'; r.durasi = Math.max(1, Math.ceil((end - r.startAt)/60000)); tgl = r.tanggal; });
+      return { ok:true, breaks: info(k, tgl) }; }
+    if (action === 'deliver'){
+      const k = auth(); const dup = db.log.find(e => e.uid === b.uid); if (dup) return { ok:true, entry:dup };
+      const c = db.customers.find(x => x.id === b.customerId);
+      let cek = 'Tanpa GPS';
+      if (b.lat != null){ if (c.lat == null && b.acc <= 100){ c.lat = b.lat; c.lng = b.lng; cek = 'Titik baru disimpan'; } else cek = 'Sesuai titik'; }
+      const entry = { uid:b.uid, tanggal:b.tanggal, jam:b.jam, kurirId:k.id, kurir:k.nama, supir:b.supir||'', pendamping:b.pendamping||'', customerId:c.id, customer:c.nama, catatan:b.catatan, penerima:b.penerima, shipmentId:b.shipmentId||'', cek, status:'Terkirim', serverTs:Date.now() };
+      db.log.push(entry); return { ok:true, entry };
+    }
+    if (action === 'cancel'){ auth(); const e = db.log.find(x => x.uid === b.uid); e.status = 'Dibatalkan'; return { ok:true, entry:e }; }
+  });
+}
+</script>
+</body>
+</html>
