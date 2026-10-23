@@ -68,6 +68,24 @@ button,input{font:inherit;color:inherit}
 .mu .sub{color:var(--muted);font-size:14px}
 .mu .go{margin-left:auto;flex:none;font-weight:700;color:var(--stamp)}
 .ruteh{padding:10px 16px 4px;font-size:13px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--roast-2);border-top:1px solid var(--line)}
+.pick{display:flex;align-items:flex-start;gap:12px;width:100%;padding:12px 16px;border-top:1px solid var(--line);cursor:pointer;background:var(--card)}
+.pick input{width:24px;height:24px;margin:2px 0 0;flex:none;accent-color:var(--stamp)}
+.pick .name{font-weight:600;font-size:17px;line-height:1.25}
+.pick .sub{color:var(--muted);font-size:14px}
+.pick.on{background:var(--ok-bg)}
+.rgrp{display:flex;align-items:center;gap:10px;padding:14px 16px 6px;font-size:13px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--roast-2)}
+.rgrp label{margin-left:auto;display:flex;gap:6px;align-items:center;text-transform:none;letter-spacing:0;font-weight:600;color:var(--muted);cursor:pointer}
+.rgrp input{width:18px;height:18px;accent-color:var(--stamp)}
+.rchips{display:flex;gap:8px;overflow-x:auto;padding:12px 16px 4px}
+.rchips .chip{white-space:nowrap;margin:0}
+.rchips .chip[aria-pressed=true]{border-color:var(--stamp);color:var(--stamp)}
+.loadbar{position:sticky;bottom:0;z-index:5;padding:12px 16px calc(12px + env(safe-area-inset-bottom));background:var(--paper);border-top:1px solid var(--line)}
+.loadbar .primary{margin:0}
+.tagk{font-size:12px;font-weight:700;color:var(--stamp)}
+.mine{display:flex;align-items:center;gap:12px;padding:10px 16px;border-top:1px solid var(--line)}
+.mine .name{font-weight:600}
+.mine .sub{color:var(--muted);font-size:14px}
+.mine .smallbtn{margin-left:auto;flex:none}
 .mubadge{margin-left:auto;flex:none;font-size:13px;font-weight:700;border-radius:999px;padding:2px 9px;background:var(--warn-bg);color:var(--warn)}
 .field .shipopt{display:flex;gap:12px;align-items:flex-start;border:2px solid var(--line);border-radius:12px;padding:12px 14px;margin:8px 0 0;cursor:pointer;font-weight:400;font-size:16px}
 .field .shipopt input{width:22px;height:22px;min-width:22px;margin:1px 0 0;padding:0;border:0;flex:none;accent-color:var(--stamp)}
@@ -261,7 +279,9 @@ const state = {
   brk: LS.get('hbd_break', { date: null, used: {}, active: null }), // used: menit per nama (huruf kecil)
   today: ymd(new Date()),
   todayList: [], histDate: null, histList: [], histLoading: false,
-  muatan: (c => c && c.date === ymd(new Date()) ? c.list : [])(LS.get('hbd_muatan', null)),   // pengiriman dari Roastery OMS
+  muatan: (c => c && c.date === ymd(new Date()) ? c.list : [])(LS.get('hbd_muatan', null)),   // barang di mobil kurir ini (Roastery OMS)
+  siap: (c => c && c.date === ymd(new Date()) ? (c.siap || []) : [])(LS.get('hbd_muatan', null)),  // barang siap dikirim, belum dimuat
+  pick: new Set(), ruteFilter: LS.get('hbd_rutefilter', ''), loading: false,
   search: '', selected: null, pickCourier: null, loginErr: ''
 };
 const saveQueue = () => LS.set('hbd_queue', state.queue);
@@ -352,8 +372,7 @@ async function loadToday(){
     const d = await api('list', { kurirId: state.session.kurirId, pin: state.session.pin, date: state.today });
     state.todayList = d.entries;
     LS.set('hbd_today', { date: state.today, entries: d.entries });
-    state.muatan = d.muatan || [];
-    LS.set('hbd_muatan', { date: state.today, list: state.muatan });
+    setLists(d);
     mergeBreaks(d.breaks);
   }catch(e){
     const c = LS.get('hbd_today', null);
@@ -402,6 +421,13 @@ function deliveredToday(){
   return m;
 }
 /* Muatan yang belum dicatat terkirim (termasuk yang masih antri di HP) */
+function setLists(d){
+  if (d.muatan) state.muatan = d.muatan;
+  if (d.siap) state.siap = d.siap;
+  const ids = new Set(state.siap.map(x => x.id));
+  state.pick = new Set([...state.pick].filter(id => ids.has(id)));
+  LS.set('hbd_muatan', { date: state.today, list: state.muatan, siap: state.siap });
+}
 function openMuatan(){
   const done = new Set(todayMerged().filter(e => e.status !== 'Dibatalkan' && e.shipmentId).map(e => e.shipmentId));
   return (state.muatan || []).filter(m => !done.has(m.id));
@@ -502,7 +528,7 @@ function saveSupir(){
   render(); loadToday(); flushQueue();
 }
 function logout(msg){
-  state.session = null; state.muatan = []; LS.del('hbd_muatan'); LS.del('hbd_session'); LS.del('hbd_today'); LS.del('hbd_break'); LS.del('hbd_closed'); LS.del('hbd_remind'); state.brk = { date: null, used: {}, active: null, claims: {} };
+  state.session = null; state.muatan = []; state.siap = []; state.pick = new Set(); LS.del('hbd_muatan'); LS.del('hbd_session'); LS.del('hbd_today'); LS.del('hbd_break'); LS.del('hbd_closed'); LS.del('hbd_remind'); state.brk = { date: null, used: {}, active: null, claims: {} };
   state.todayList = []; state.screen = 'login'; state.pickCourier = null; state.pickSupir = null; state.pickDua = null; state.loginErr = msg || '';
   render();
 }
@@ -526,11 +552,11 @@ function render(){
         </div>
       </div>
       <nav class="tabs" role="tablist">
-        ${tabBtn('antar','Antar')}${tabBtn('hari','Hari ini ('+n+')')}${tabBtn('riwayat','Riwayat')}
+        ${tabBtn('antar','Antar')}${state.siap.length || state.muatan.length || state.tab === 'muat' ? tabBtn('muat','Muat (' + state.siap.length + ')') : ''}${tabBtn('hari','Hari ini ('+n+')')}${tabBtn('riwayat','Riwayat')}
       </nav>
     </header>
     <div id="breakbar"></div>
-    <main>${state.tab === 'antar' ? antarHTML() : state.tab === 'hari' ? hariHTML() : riwayatHTML()}</main>`;
+    <main>${state.tab === 'antar' ? antarHTML() : state.tab === 'muat' ? muatHTML() : state.tab === 'hari' ? hariHTML() : riwayatHTML()}</main>`;
   if (state.tab === 'antar') renderCustList();
   renderBreak();
 }
@@ -595,6 +621,70 @@ function supirHTML(){
     <button class="ghost" data-act="logout">Bukan ${esc(state.session.nama)}? Ganti kurir</button>
     ${state.loginErr ? `<div class="err" role="alert">${esc(state.loginErr)}</div>` : ''}
   </div>`;
+}
+
+/* ---------- Muat: centang barang yang masuk mobil ---------- */
+function muatHTML(){
+  const all = state.siap;
+  const rutes = [...new Set(all.map(m => m.rute || ''))];
+  const f = rutes.includes(state.ruteFilter) ? state.ruteFilter : '';
+  const list = all.filter(m => !f || (m.rute || '') === f);
+  let html = '';
+  if (rutes.length > 1) html += `<div class="rchips"><button class="chip" data-rf="" aria-pressed="${!f}">Semua (${all.length})</button>${rutes.map(r => `<button class="chip" data-rf="${esc(r)}" aria-pressed="${f === r}">${esc(r || 'Tanpa rute')} (${all.filter(m => (m.rute || '') === r).length})</button>`).join('')}</div>`;
+  if (!list.length) html += `<div class="empty">Belum ada barang siap dikirim. Barang muncul di sini setelah produksi menandai <b>Siap dikirim</b>.</div>`;
+  let last = null;
+  list.forEach(m => {
+    const r = m.rute || 'Tanpa rute';
+    if (r !== last){
+      const ids = list.filter(x => (x.rute || 'Tanpa rute') === r).map(x => x.id);
+      const allOn = ids.every(id => state.pick.has(id));
+      html += `<div class="rgrp">${esc(r)}<label><input type="checkbox" data-pickall="${esc(r)}" ${allOn ? 'checked' : ''}>Pilih semua</label></div>`;
+      last = r;
+    }
+    const on = state.pick.has(m.id);
+    html += `<label class="pick ${on ? 'on' : ''}"><input type="checkbox" data-pick="${esc(m.id)}" ${on ? 'checked' : ''}>
+      <div><div class="name">${esc(custName(m.customerId))}</div><div class="sub">${esc(m.isi)}</div>
+      <div class="sub">${esc(m.id)}${m.invoice ? ' · ' + esc(m.invoice) : ''}${m.telat ? ' · <b style="color:var(--danger)">terlambat</b>' : ''}${m.untukKamu ? ' · <span class="tagk">untuk kamu</span>' : ''}</div></div></label>`;
+  });
+  if (state.muatan.length){
+    html += `<div class="rgrp">Di mobil (${state.muatan.length})</div>` + state.muatan.map(m => `<div class="mine"><div><div class="name">${esc(custName(m.customerId))}</div>
+      <div class="sub">${esc(m.id)} · ${esc(m.isi)}</div></div><button class="smallbtn" data-unload="${esc(m.id)}">Turunkan</button></div>`).join('');
+  }
+  const n = state.pick.size;
+  html += `<div class="loadbar"><button class="primary" data-act="load" ${n && !state.loading ? '' : 'disabled'}>${state.loading ? 'Memuat…' : 'Muat ke mobil (' + n + ')'}</button></div>`;
+  return html;
+}
+function refreshMuat(){ if (state.tab === 'muat'){ const y = window.scrollY; render(); window.scrollTo(0, y); } }
+
+async function loadSelected(){
+  const ids = [...state.pick]; if (!ids.length) return;
+  // Layar langsung berubah; server menyusul
+  const moved = state.siap.filter(m => ids.includes(m.id));
+  state.siap = state.siap.filter(m => !ids.includes(m.id));
+  state.muatan = [...state.muatan, ...moved];
+  state.pick = new Set(); state.loading = true; refreshMuat();
+  try{
+    const d = await api('load', { kurirId: state.session.kurirId, pin: state.session.pin, uid: uuid(), shipmentIds: ids, supir: state.session.supir || '' });
+    setLists(d);
+    const bad = d.results.filter(r => !r.ok);
+    toast(bad.length ? `${d.dimuat} dimuat. Gagal: ${bad.map(r => r.id + ' (' + r.error + ')').join(', ')}` : `${ids.length} barang dimuat. Status: Dalam pengiriman.`);
+  }catch(e){
+    state.siap = [...state.siap, ...moved]; state.muatan = state.muatan.filter(m => !ids.includes(m.id));
+    ids.forEach(id => state.pick.add(id));
+    toast(e.network ? 'Perlu sinyal untuk memuat. Coba lagi.' : e.message);
+    if (e.server) loadToday();
+  }
+  state.loading = false; refreshMuat();
+}
+async function unloadOne(id){
+  if (!confirm('Turunkan barang ini dari mobil? Barang kembali ke daftar Siap dikirim.')) return;
+  const m = state.muatan.find(x => x.id === id);
+  state.muatan = state.muatan.filter(x => x.id !== id);
+  if (m) state.siap = [...state.siap, { ...m, untukKamu: false }];
+  refreshMuat();
+  try{ setLists(await api('unload', { kurirId: state.session.kurirId, pin: state.session.pin, shipmentId: id })); toast('Barang diturunkan.'); }
+  catch(e){ toast(e.message); loadToday(); }
+  refreshMuat();
 }
 
 function muatanHTML(){
@@ -1016,15 +1106,17 @@ setInterval(() => { breakTick(); if (!state.brk.active && document.title !== 'Hu
 
 /* ====================== EVENT ====================== */
 document.addEventListener('click', e => {
-  const t = e.target.closest('[data-act],[data-tab],[data-cust],[data-ship],[data-courier],[data-cancel],[data-drop],[data-supirname],[data-penerima],[data-pick-supir],[data-pick-dua]');
+  const t = e.target.closest('[data-act],[data-tab],[data-cust],[data-ship],[data-rf],[data-unload],[data-courier],[data-cancel],[data-drop],[data-supirname],[data-penerima],[data-pick-supir],[data-pick-dua]');
   if (!t) return;
   if (t.dataset.tab){
     state.tab = t.dataset.tab; render();
-    if (state.tab === 'hari') loadToday();
+    if (state.tab === 'hari' || state.tab === 'muat') loadToday();
     if (state.tab === 'riwayat') loadHistory(state.histDate || state.today);
     return;
   }
   if (t.dataset.cust){ const c = state.customers.find(x => x.id === t.dataset.cust); if (c) openSheet(c); return; }
+  if (t.dataset.rf !== undefined){ state.ruteFilter = t.dataset.rf; LS.set('hbd_rutefilter', state.ruteFilter); return refreshMuat(); }
+  if (t.dataset.unload) return unloadOne(t.dataset.unload);
   if (t.dataset.ship){
     const m = (state.muatan || []).find(x => x.id === t.dataset.ship);
     const c = m && state.customers.find(x => x.id === m.customerId);
@@ -1049,6 +1141,7 @@ document.addEventListener('click', e => {
   switch (t.dataset.act){
     case 'close': return closeSheet();
     case 'deliver': return markDelivered();
+    case 'load': return loadSelected();
     case 'stamp-done': $('#stampwrap')?.remove(); state.tab = 'antar'; state.search = ''; return render();
     case 'login': return doLogin();
     case 'supir': state.loginErr = ''; state.pickSupir = null; state.pickDua = null; state.screen = 'supir'; return render();
@@ -1079,6 +1172,12 @@ document.addEventListener('change', e => {
     p.querySelector('.cd-lupa').style.display = e.target.value === 'lupa' ? '' : 'none';
   }
   if (e.target.id === 'hdate' && e.target.value) loadHistory(e.target.value);
+  if (e.target.dataset.pick){ e.target.checked ? state.pick.add(e.target.dataset.pick) : state.pick.delete(e.target.dataset.pick); refreshMuat(); }
+  if (e.target.dataset.pickall !== undefined){
+    const r = e.target.dataset.pickall, f = state.ruteFilter;
+    state.siap.filter(m => (m.rute || 'Tanpa rute') === r && (!f || (m.rute || '') === f)).forEach(m => e.target.checked ? state.pick.add(m.id) : state.pick.delete(m.id));
+    refreshMuat();
+  }
 });
 document.addEventListener('keydown', e => {
   if (e.key === 'Enter' && e.target.id === 'pin') doLogin();
