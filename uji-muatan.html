@@ -79,6 +79,9 @@ button,input{font:inherit;color:inherit}
 .rchips{display:flex;gap:8px;overflow-x:auto;padding:12px 16px 4px}
 .rchips .chip{white-space:nowrap;margin:0}
 .rchips .chip[aria-pressed=true]{border-color:var(--stamp);color:var(--stamp)}
+.lainbtn{display:block;width:100%;text-align:left;margin:14px 0 0;padding:12px 16px;border:0;border-top:1px dashed var(--line);border-bottom:1px dashed var(--line);background:transparent;font:inherit;font-weight:700;color:var(--muted);cursor:pointer}
+.lainnote{padding:8px 16px;font-size:13px;color:var(--muted)}
+.taglain{color:var(--danger);font-weight:600}
 .loadbar{position:sticky;bottom:0;z-index:5;padding:12px 16px calc(12px + env(safe-area-inset-bottom));background:var(--paper);border-top:1px solid var(--line)}
 .loadbar .primary{margin:0}
 .tagk{font-size:12px;font-weight:700;color:var(--stamp)}
@@ -281,6 +284,8 @@ const state = {
   todayList: [], histDate: null, histList: [], histLoading: false,
   muatan: (c => c && c.date === ymd(new Date()) ? c.list : [])(LS.get('hbd_muatan', null)),   // barang di mobil kurir ini (Roastery OMS)
   siap: (c => c && c.date === ymd(new Date()) ? (c.siap || []) : [])(LS.get('hbd_muatan', null)),  // barang siap dikirim, belum dimuat
+  lain: (c => c && c.date === ymd(new Date()) ? (c.lain || []) : [])(LS.get('hbd_muatan', null)),  // siap, tapi jadwal hari lain / kurir lain
+  showLain: false,
   pick: new Set(), ruteFilter: LS.get('hbd_rutefilter', ''), loading: false,
   search: '', selected: null, pickCourier: null, loginErr: ''
 };
@@ -424,9 +429,10 @@ function deliveredToday(){
 function setLists(d){
   if (d.muatan) state.muatan = d.muatan;
   if (d.siap) state.siap = d.siap;
-  const ids = new Set(state.siap.map(x => x.id));
+  if (d.lain) state.lain = d.lain;
+  const ids = new Set(state.siap.concat(state.lain).map(x => x.id));
   state.pick = new Set([...state.pick].filter(id => ids.has(id)));
-  LS.set('hbd_muatan', { date: state.today, list: state.muatan, siap: state.siap });
+  LS.set('hbd_muatan', { date: state.today, list: state.muatan, siap: state.siap, lain: state.lain });
 }
 function openMuatan(){
   const done = new Set(todayMerged().filter(e => e.status !== 'Dibatalkan' && e.shipmentId).map(e => e.shipmentId));
@@ -552,7 +558,7 @@ function render(){
         </div>
       </div>
       <nav class="tabs" role="tablist">
-        ${tabBtn('antar','Antar')}${state.siap.length || state.muatan.length || state.tab === 'muat' ? tabBtn('muat','Muat (' + state.siap.length + ')') : ''}${tabBtn('hari','Hari ini ('+n+')')}${tabBtn('riwayat','Riwayat')}
+        ${tabBtn('antar','Antar')}${state.siap.length || state.muatan.length || state.lain.length || state.tab === 'muat' ? tabBtn('muat','Muat (' + state.siap.length + ')') : ''}${tabBtn('hari','Hari ini ('+n+')')}${tabBtn('riwayat','Riwayat')}
       </nav>
     </header>
     <div id="breakbar"></div>
@@ -631,7 +637,7 @@ function muatHTML(){
   const list = all.filter(m => !f || (m.rute || '') === f);
   let html = '';
   if (rutes.length > 1) html += `<div class="rchips"><button class="chip" data-rf="" aria-pressed="${!f}">Semua (${all.length})</button>${rutes.map(r => `<button class="chip" data-rf="${esc(r)}" aria-pressed="${f === r}">${esc(r || 'Tanpa rute')} (${all.filter(m => (m.rute || '') === r).length})</button>`).join('')}</div>`;
-  if (!list.length) html += `<div class="empty">Belum ada barang siap dikirim. Barang muncul di sini setelah produksi menandai <b>Siap dikirim</b>.</div>`;
+  if (!list.length) html += `<div class="empty">${state.lain.length ? 'Tidak ada barang siap untuk jadwal hari ini.' : 'Belum ada barang siap dikirim. Barang muncul di sini setelah produksi menandai <b>Siap dikirim</b>.'}</div>`;
   let last = null;
   list.forEach(m => {
     const r = m.rute || 'Tanpa rute';
@@ -646,6 +652,16 @@ function muatHTML(){
       <div><div class="name">${esc(custName(m.customerId))}</div><div class="sub">${esc(m.isi)}</div>
       <div class="sub">${esc(m.id)}${m.invoice ? ' · ' + esc(m.invoice) : ''}${m.telat ? ' · <b style="color:var(--danger)">terlambat</b>' : ''}${m.untukKamu ? ' · <span class="tagk">untuk kamu</span>' : ''}</div></div></label>`;
   });
+  if (state.lain.length){
+    const nl = state.lain.filter(m => state.pick.has(m.id)).length;
+    html += `<button class="lainbtn" data-act="lain">${state.showLain ? '▾' : '▸'} Jadwal lain / kurir lain (${state.lain.length})${nl ? ' · ' + nl + ' dipilih' : ''}</button>`;
+    if (state.showLain){
+      html += `<div class="lainnote">Barang yang sudah siap tapi dijadwalkan hari lain atau untuk kurir lain. Centang bila memang harus dibawa <b>hari ini</b> oleh kamu. Jadwal dan kurirnya otomatis berubah di sistem.</div>`;
+      html += state.lain.map(m => { const on = state.pick.has(m.id); return `<label class="pick lain ${on ? 'on' : ''}"><input type="checkbox" data-pick="${esc(m.id)}" ${on ? 'checked' : ''}>
+        <div><div class="name">${esc(custName(m.customerId))}</div><div class="sub">${esc(m.isi)}</div>
+        <div class="sub">${esc(m.id)} · ${esc(m.rute || 'Tanpa rute')}${m.tgl > state.today ? ' · <span class="taglain">jadwal ' + esc(shortDate(m.tgl)) + '</span>' : ''}${m.kurirLain ? ' · <span class="taglain">untuk ' + esc(m.kurirLain) + '</span>' : ''}</div></div></label>`; }).join('');
+    }
+  }
   if (state.muatan.length){
     html += `<div class="rgrp">Di mobil (${state.muatan.length})</div>` + state.muatan.map(m => `<div class="mine"><div><div class="name">${esc(custName(m.customerId))}</div>
       <div class="sub">${esc(m.id)} · ${esc(m.isi)}</div></div><button class="smallbtn" data-unload="${esc(m.id)}">Turunkan</button></div>`).join('');
@@ -658,18 +674,22 @@ function refreshMuat(){ if (state.tab === 'muat'){ const y = window.scrollY; ren
 
 async function loadSelected(){
   const ids = [...state.pick]; if (!ids.length) return;
+  const luar = state.lain.filter(m => ids.includes(m.id));
+  if (luar.length && !confirm(luar.length + ' barang di luar jadwal/rute kamu akan dibawa hari ini:\n' + luar.map(m => '• ' + custName(m.customerId) + (m.kurirLain ? ' (untuk ' + m.kurirLain + ')' : '')).join('\n') + '\n\nLanjut muat?')) return;
   // Layar langsung berubah; server menyusul
-  const moved = state.siap.filter(m => ids.includes(m.id));
+  const moved = state.siap.concat(state.lain).filter(m => ids.includes(m.id));
+  const sebelumLain = state.lain;
   state.siap = state.siap.filter(m => !ids.includes(m.id));
+  state.lain = state.lain.filter(m => !ids.includes(m.id));
   state.muatan = [...state.muatan, ...moved];
   state.pick = new Set(); state.loading = true; refreshMuat();
   try{
-    const d = await api('load', { kurirId: state.session.kurirId, pin: state.session.pin, uid: uuid(), shipmentIds: ids, supir: state.session.supir || '' });
+    const d = await api('load', { kurirId: state.session.kurirId, pin: state.session.pin, uid: uuid(), shipmentIds: ids, ambil: luar.map(m => m.id), supir: state.session.supir || '' });
     setLists(d);
     const bad = d.results.filter(r => !r.ok);
     toast(bad.length ? `${d.dimuat} dimuat. Gagal: ${bad.map(r => r.id + ' (' + r.error + ')').join(', ')}` : `${ids.length} barang dimuat. Status: Dalam pengiriman.`);
   }catch(e){
-    state.siap = [...state.siap, ...moved]; state.muatan = state.muatan.filter(m => !ids.includes(m.id));
+    state.siap = [...state.siap, ...moved.filter(m => !luar.includes(m))]; state.lain = sebelumLain; state.muatan = state.muatan.filter(m => !ids.includes(m.id));
     ids.forEach(id => state.pick.add(id));
     toast(e.network ? 'Perlu sinyal untuk memuat. Coba lagi.' : e.message);
     if (e.server) loadToday();
@@ -1142,6 +1162,7 @@ document.addEventListener('click', e => {
     case 'close': return closeSheet();
     case 'deliver': return markDelivered();
     case 'load': return loadSelected();
+    case 'lain': state.showLain = !state.showLain; return refreshMuat();
     case 'stamp-done': $('#stampwrap')?.remove(); state.tab = 'antar'; state.search = ''; return render();
     case 'login': return doLogin();
     case 'supir': state.loginErr = ''; state.pickSupir = null; state.pickDua = null; state.screen = 'supir'; return render();
