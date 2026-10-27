@@ -79,6 +79,20 @@ button,input{font:inherit;color:inherit}
 .rchips{display:flex;gap:8px;overflow-x:auto;padding:12px 16px 4px}
 .rchips .chip{white-space:nowrap;margin:0}
 .rchips .chip[aria-pressed=true]{border-color:var(--stamp);color:var(--stamp)}
+.tab{font-size:13.5px;padding:12px 1px 10px;white-space:nowrap;flex:1 1 auto}
+.rcard{background:var(--card);border-top:1px solid var(--line);padding:4px 0 10px}
+.rcard.mine-r{box-shadow:inset 4px 0 0 var(--stamp)}
+.rhead{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;justify-content:space-between;width:100%;padding:12px 16px 4px;border:0;background:none;font:inherit;text-align:left;cursor:pointer;color:var(--ink)}
+.rname{font-weight:700;font-size:17px}
+.rcnt{display:flex;gap:4px;flex-wrap:wrap}
+.rs{display:inline-block;font-size:12px;font-weight:600;border-radius:999px;padding:2px 8px;background:var(--line);color:var(--ink);white-space:nowrap}
+.rs-prod{background:#FFF1C2;color:#7A5800}.rs-siap{background:#D9F2DF;color:#1E6B3A}.rs-jalan{background:#DBE9FB;color:#1F4F8F}.rs-done{background:var(--line);color:var(--muted)}
+.rwho{display:flex;flex-wrap:wrap;gap:4px 12px;padding:0 16px;font-size:14px}
+.rwho .muted,.ritem.muted{color:var(--muted)}
+.racts{display:flex;gap:8px;flex-wrap:wrap;padding:8px 16px 4px}
+.smallbtn.pri{background:var(--stamp);color:#fff;border-color:var(--stamp)}
+.ritem{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;padding:8px 16px 8px 28px;border-top:1px dashed var(--line)}
+.ritem .name{font-weight:600}.ritem .sub{color:var(--muted);font-size:13px}
 .lainbtn{display:block;width:100%;text-align:left;margin:14px 0 0;padding:12px 16px;border:0;border-top:1px dashed var(--line);border-bottom:1px dashed var(--line);background:transparent;font:inherit;font-weight:700;color:var(--muted);cursor:pointer}
 .lainnote{padding:8px 16px;font-size:13px;color:var(--muted)}
 .taglain{color:var(--danger);font-weight:600}
@@ -286,6 +300,8 @@ const state = {
   siap: (c => c && c.date === ymd(new Date()) ? (c.siap || []) : [])(LS.get('hbd_muatan', null)),  // barang siap dikirim, belum dimuat
   lain: (c => c && c.date === ymd(new Date()) ? (c.lain || []) : [])(LS.get('hbd_muatan', null)),  // siap, tapi jadwal hari lain / kurir lain
   showLain: false,
+  rutes: (c => c && c.date === ymd(new Date()) ? (c.rutes || []) : [])(LS.get('hbd_muatan', null)),  // ringkasan rute hari ini
+  openRute: null,
   pick: new Set(), ruteFilter: LS.get('hbd_rutefilter', ''), loading: false,
   search: '', selected: null, pickCourier: null, loginErr: ''
 };
@@ -430,9 +446,11 @@ function setLists(d){
   if (d.muatan) state.muatan = d.muatan;
   if (d.siap) state.siap = d.siap;
   if (d.lain) state.lain = d.lain;
+  if (d.rutes) state.rutes = d.rutes;
+  if (d.omsError !== undefined) state.omsError = d.omsError;
   const ids = new Set(state.siap.concat(state.lain).map(x => x.id));
   state.pick = new Set([...state.pick].filter(id => ids.has(id)));
-  LS.set('hbd_muatan', { date: state.today, list: state.muatan, siap: state.siap, lain: state.lain });
+  LS.set('hbd_muatan', { date: state.today, list: state.muatan, siap: state.siap, lain: state.lain, rutes: state.rutes });
 }
 function openMuatan(){
   const done = new Set(todayMerged().filter(e => e.status !== 'Dibatalkan' && e.shipmentId).map(e => e.shipmentId));
@@ -558,11 +576,11 @@ function render(){
         </div>
       </div>
       <nav class="tabs" role="tablist">
-        ${tabBtn('antar','Antar')}${state.siap.length || state.muatan.length || state.lain.length || state.tab === 'muat' ? tabBtn('muat','Muat (' + state.siap.length + ')') : ''}${tabBtn('hari','Hari ini ('+n+')')}${tabBtn('riwayat','Riwayat')}
+        ${tabBtn('antar','Antar')}${state.rutes.length || state.tab === 'rute' ? tabBtn('rute', 'Rute') : ''}${state.siap.length || state.muatan.length || state.lain.length || state.tab === 'muat' ? tabBtn('muat','Muat (' + state.siap.length + ')') : ''}${tabBtn('hari','Hari ini ('+n+')')}${tabBtn('riwayat','Riwayat')}
       </nav>
     </header>
     <div id="breakbar"></div>
-    <main>${state.tab === 'antar' ? antarHTML() : state.tab === 'muat' ? muatHTML() : state.tab === 'hari' ? hariHTML() : riwayatHTML()}</main>`;
+    <main>${state.tab === 'antar' ? antarHTML() : state.tab === 'muat' ? muatHTML() : state.tab === 'rute' ? ruteHTML() : state.tab === 'hari' ? hariHTML() : riwayatHTML()}</main>`;
   if (state.tab === 'antar') renderCustList();
   renderBreak();
 }
@@ -628,6 +646,42 @@ function supirHTML(){
     ${state.loginErr ? `<div class="err" role="alert">${esc(state.loginErr)}</div>` : ''}
   </div>`;
 }
+
+/* ---------- Rute: pilih rute yang dibawa hari ini + pantau isinya ---------- */
+const RST = { produksi: ['Masih produksi', 'rs-prod'], siap: ['Siap', 'rs-siap'], dimuat: ['Di mobil', 'rs-jalan'], terkirim: ['Terkirim', 'rs-done'] };
+function ruteHTML(){
+  const rs = state.rutes;
+  if (!rs.length) return `<div class="empty">Belum ada rute. Rute diambil dari kolom Area customer dan tab Rute di OMS.</div>`;
+  const mine = rs.filter(r => r.punyaKu);
+  let html = `<div class="lainnote" style="padding-top:14px">${mine.length ? 'Rute kamu hari ini: <b>' + mine.map(r => esc(r.rute || 'Tanpa rute')).join(', ') + '</b>.' : 'Pilih rute yang kamu bawa hari ini. Kurir lain dan admin bisa melihat rute mana dibawa siapa.'}</div>`;
+  rs.forEach(r => {
+    const key = r.rute || '';
+    const cnt = k => r.items.filter(i => i.status === k).length;
+    const open = state.openRute === null ? r.punyaKu : state.openRute === key;
+    const lain = r.kurir.filter(k => k.kurirId !== state.session.kurirId);
+    html += `<div class="rcard${r.punyaKu ? ' mine-r' : ''}">
+      <button class="rhead" data-act="rtoggle" data-rute="${esc(key)}"><span class="rname">${open ? '▾' : '▸'} ${esc(r.rute || 'Tanpa rute')}</span>
+        <span class="rcnt">${['produksi', 'siap', 'dimuat', 'terkirim'].filter(k => cnt(k)).map(k => `<span class="rs ${RST[k][1]}">${cnt(k)} ${RST[k][0].toLowerCase()}</span>`).join('') || '<span class="rs">kosong</span>'}</span></button>
+      <div class="rwho">${r.punyaKu ? '<b>🚚 Kamu</b>' : ''}${lain.map(k => `<span>🚚 ${esc(k.kurir)}${k.supir ? ' (' + esc(k.supir) + ')' : ''} · ${esc(k.jam)}</span>`).join('')}${!r.kurir.length ? '<span class="muted">Belum dipilih kurir</span>' : ''}</div>
+      ${key ? `<div class="racts">${r.punyaKu ? `<button class="smallbtn" data-act="rrelease" data-rute="${esc(key)}">Lepas rute</button>${cnt('siap') ? `<button class="smallbtn pri" data-act="rmuat" data-rute="${esc(key)}">Muat barang rute ini (${cnt('siap')})</button>` : ''}` : `<button class="smallbtn pri" data-act="rtake" data-rute="${esc(key)}">${lain.length ? 'Ikut bawa rute ini' : 'Ambil rute ini'}</button>`}</div>` : ''}
+      ${open ? (r.items.length ? r.items.map(i => `<div class="ritem"><div><div class="name">${esc(custName(i.customerId))}</div><div class="sub">${esc(i.isi)}</div>
+          <div class="sub">${esc(i.id)}${i.kurir && i.status !== 'siap' ? ' · ' + esc(i.kurir) : ''}${i.telat ? ' · <b style="color:var(--danger)">terlambat</b>' : ''}</div></div>
+          <span class="rs ${RST[i.status][1]}">${RST[i.status][0]}</span></div>`).join('') : '<div class="ritem muted">Tidak ada kiriman hari ini.</div>') : ''}
+    </div>`;
+  });
+  return html;
+}
+async function setRute(rute, take){
+  // Layar langsung berubah; server menyusul
+  const r = state.rutes.find(x => (x.rute || '') === rute);
+  if (r){ r.punyaKu = take; if (take) r.kurir = r.kurir.concat([{ kurirId: state.session.kurirId, kurir: state.session.nama, jam: '' }]); else r.kurir = r.kurir.filter(k => k.kurirId !== state.session.kurirId); }
+  if (take){ state.openRute = rute; state.ruteFilter = rute; LS.set('hbd_rutefilter', rute); }
+  refreshRute();
+  try{ setLists(await api(take ? 'routeTake' : 'routeRelease', { kurirId: state.session.kurirId, pin: state.session.pin, rute, supir: state.session.supir || '' })); toast(take ? rute + ' kamu bawa hari ini.' : rute + ' dilepas.'); }
+  catch(e){ toast(e.network ? 'Perlu sinyal untuk memilih rute. Coba lagi.' : e.message); loadToday(); }
+  refreshRute();
+}
+function refreshRute(){ if (state.tab === 'rute'){ const y = window.scrollY; render(); window.scrollTo(0, y); } }
 
 /* ---------- Muat: centang barang yang masuk mobil ---------- */
 function muatHTML(){
@@ -707,6 +761,7 @@ async function unloadOne(id){
   refreshMuat();
 }
 
+function omsWarn(){ return state.omsError && /gagal/i.test(state.omsError) ? `<div class="lainnote" style="color:var(--danger);font-weight:600">${esc(state.omsError)}</div>` : ''; }
 function muatanHTML(){
   const list = openMuatan();
   if (!list.length) return '';
@@ -719,7 +774,7 @@ function muatanHTML(){
       <span class="go">Antar ›</span></button>`; }).join('')}</div>`;
 }
 function antarHTML(){
-  return `${muatanHTML()}<div class="search">
+  return `${omsWarn()}${muatanHTML()}<div class="search">
       <input id="q" type="search" placeholder="Cari customer…" value="${esc(state.search)}" autocomplete="off" aria-label="Cari customer">
       <div class="count" id="count"></div>
     </div>
@@ -1130,7 +1185,7 @@ document.addEventListener('click', e => {
   if (!t) return;
   if (t.dataset.tab){
     state.tab = t.dataset.tab; render();
-    if (state.tab === 'hari' || state.tab === 'muat') loadToday();
+    if (state.tab === 'hari' || state.tab === 'muat' || state.tab === 'rute') loadToday();
     if (state.tab === 'riwayat') loadHistory(state.histDate || state.today);
     return;
   }
@@ -1163,6 +1218,10 @@ document.addEventListener('click', e => {
     case 'deliver': return markDelivered();
     case 'load': return loadSelected();
     case 'lain': state.showLain = !state.showLain; return refreshMuat();
+    case 'rtoggle': { const cur = state.openRute === null ? (state.rutes.find(x => (x.rute || '') === t.dataset.rute) || {}).punyaKu : state.openRute === t.dataset.rute; state.openRute = cur ? '' : t.dataset.rute; return refreshRute(); }
+    case 'rtake': return setRute(t.dataset.rute, true);
+    case 'rrelease': if (!confirm('Lepas rute ' + t.dataset.rute + '? Barang yang sudah di mobil tetap di mobil.')) return; return setRute(t.dataset.rute, false);
+    case 'rmuat': state.ruteFilter = t.dataset.rute; LS.set('hbd_rutefilter', t.dataset.rute); state.siap.filter(m => (m.rute || '') === t.dataset.rute).forEach(m => state.pick.add(m.id)); state.tab = 'muat'; render(); window.scrollTo(0, 0); return;
     case 'stamp-done': $('#stampwrap')?.remove(); state.tab = 'antar'; state.search = ''; return render();
     case 'login': return doLogin();
     case 'supir': state.loginErr = ''; state.pickSupir = null; state.pickDua = null; state.screen = 'supir'; return render();
