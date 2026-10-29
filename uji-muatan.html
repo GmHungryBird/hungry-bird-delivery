@@ -93,7 +93,13 @@ button,input{font:inherit;color:inherit}
 .smallbtn.pri{background:var(--stamp);color:#fff;border-color:var(--stamp)}
 .ritem{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;padding:8px 16px 8px 28px;border-top:1px dashed var(--line)}
 .ritem .name{font-weight:600}.ritem .sub{color:var(--muted);font-size:13px}
-.ambiltag{display:inline-block;margin:3px 0 2px;font-size:13px;font-weight:700;color:#7A5800;background:#FFF1C2;border-radius:999px;padding:2px 10px}
+.ambiltag{display:inline-block;margin:3px 0 2px;font-size:13px;font-weight:700;color:#7A5800;background:#FFF1C2;border-radius:10px;padding:2px 10px}
+.ambiltag.ok{color:#1E6B3A;background:#D9F2DF}
+.ambilchk{display:flex;gap:10px;align-items:flex-start;border:2px solid #E8B923;background:#FFF8DC;color:#5a4300;border-radius:12px;padding:12px 14px;margin-top:10px;font-weight:600;font-size:15px}
+.ambilchk input{width:22px;height:22px;min-width:22px;margin:1px 0 0;accent-color:var(--stamp)}
+.mine .acts{display:flex;flex-direction:column;gap:6px;margin-left:auto;align-items:flex-end}
+.jemput-h{color:#7A5800}
+.pick.jemput .jisi{color:var(--ink);font-weight:600;font-size:15px}
 .lainbtn{display:block;width:100%;text-align:left;margin:14px 0 0;padding:12px 16px;border:0;border-top:1px dashed var(--line);border-bottom:1px dashed var(--line);background:transparent;font:inherit;font-weight:700;color:var(--muted);cursor:pointer}
 .lainnote{padding:8px 16px;font-size:13px;color:var(--muted)}
 .taglain{color:var(--danger);font-weight:600}
@@ -301,6 +307,9 @@ const state = {
   siap: (c => c && c.date === ymd(new Date()) ? (c.siap || []) : [])(LS.get('hbd_muatan', null)),  // barang siap dikirim, belum dimuat
   lain: (c => c && c.date === ymd(new Date()) ? (c.lain || []) : [])(LS.get('hbd_muatan', null)),  // siap, tapi jadwal hari lain / kurir lain
   showLain: false,
+  jemput: (c => c && c.date === ymd(new Date()) ? (c.jemput || []) : [])(LS.get('hbd_muatan', null)),   // barang HB siap diambil
+  diambil: (c => c && c.date === ymd(new Date()) ? (c.diambil || []) : [])(LS.get('hbd_muatan', null)),
+  jPick: new Set(), omsUrl: '',
   rutes: (c => c && c.date === ymd(new Date()) ? (c.rutes || []) : [])(LS.get('hbd_muatan', null)),  // ringkasan rute hari ini
   openRute: null,
   pick: new Set(), ruteFilter: LS.get('hbd_rutefilter', ''), loading: false,
@@ -448,10 +457,14 @@ function setLists(d){
   if (d.siap) state.siap = d.siap;
   if (d.lain) state.lain = d.lain;
   if (d.rutes) state.rutes = d.rutes;
+  if (d.jemput) state.jemput = d.jemput;
+  if (d.diambil) state.diambil = d.diambil;
+  if (d.omsUrl !== undefined) state.omsUrl = d.omsUrl;
+  state.jPick = new Set([...state.jPick].filter(id => state.jemput.some(j => j.orderId === id)));
   if (d.omsError !== undefined) state.omsError = d.omsError;
   const ids = new Set(state.siap.concat(state.lain).map(x => x.id));
   state.pick = new Set([...state.pick].filter(id => ids.has(id)));
-  LS.set('hbd_muatan', { date: state.today, list: state.muatan, siap: state.siap, lain: state.lain, rutes: state.rutes });
+  LS.set('hbd_muatan', { date: state.today, list: state.muatan, siap: state.siap, lain: state.lain, rutes: state.rutes, jemput: state.jemput, diambil: state.diambil });
 }
 function openMuatan(){
   const done = new Set(todayMerged().filter(e => e.status !== 'Dibatalkan' && e.shipmentId).map(e => e.shipmentId));
@@ -460,8 +473,18 @@ function openMuatan(){
 const custName = id => (state.customers.find(c => c.id === id) || {}).nama || id;
 
 /* ====================== AKSI ====================== */
+function updAmbilBox(){
+  const box = document.getElementById('ambilbox'); if (!box) return;
+  const sid = document.querySelector('input[name="ship"]:checked')?.value || '';
+  const m = (state.muatan || []).find(x => x.id === sid);
+  box.innerHTML = m && (m.ambil || []).length && !ambilDone()[m.id]
+    ? `<label class="ambilchk"><input type="checkbox" id="ambilck"><span>Barang dari ${esc(m.ambil.join(' & '))} sudah ikut diantar${m.ambilIsi ? ': ' + esc(m.ambilIsi) : ''}</span></label>` : '';
+}
 async function markDelivered(){
   const c = state.selected; if (!c) return;
+  const ack = document.getElementById('ambilck');
+  if (ack && !ack.checked){ ack.closest('.ambilchk').style.borderColor = 'var(--danger)'; toast('Pastikan barang dari HB sudah dibawa, lalu centang.'); return; }
+  if (ack) setAmbilDone(document.querySelector('input[name="ship"]:checked').value, true);
   if (needSupir()){ closeSheet(); state.screen = 'supir'; return render(); }
   const penerima = ($('#penerima')?.value || '').trim().replace(/\s+/g, ' ');
   if (penerima.length < 2){
@@ -577,7 +600,7 @@ function render(){
         </div>
       </div>
       <nav class="tabs" role="tablist">
-        ${tabBtn('antar','Antar')}${state.rutes.length || state.tab === 'rute' ? tabBtn('rute', 'Rute') : ''}${state.siap.length || state.muatan.length || state.lain.length || state.tab === 'muat' ? tabBtn('muat','Muat (' + state.siap.length + ')') : ''}${tabBtn('hari','Hari ini ('+n+')')}${tabBtn('riwayat','Riwayat')}
+        ${tabBtn('antar','Antar')}${state.rutes.length || state.tab === 'rute' ? tabBtn('rute', 'Rute') : ''}${state.siap.length || state.muatan.length || state.lain.length || state.jemput.length || state.diambil.length || state.tab === 'muat' ? tabBtn('muat','Muat (' + (state.siap.length + state.jemput.length) + ')') : ''}${tabBtn('hari','Hari ini ('+n+')')}${tabBtn('riwayat','Riwayat')}
       </nav>
     </header>
     <div id="breakbar"></div>
@@ -648,7 +671,12 @@ function supirHTML(){
   </div>`;
 }
 
-const ambilTag = m => (m.ambil || []).length ? `<div class="ambiltag">📍 Ambil juga di ${m.ambil.map(esc).join(' & ')}</div>` : '';
+/* Barang yang dikemas di lokasi lain (mis. HB): kurir harus mampir. Tanda "sudah diambil" disimpan di HP per hari. */
+const ambilDone = () => (c => c && c.date === ymd(new Date()) ? c.ids : {})(LS.get('hbd_ambil', null));
+function setAmbilDone(id, v){ const ids = ambilDone(); if (v) ids[id] = true; else delete ids[id]; LS.set('hbd_ambil', { date: ymd(new Date()), ids }); }
+const ambilTag = m => !(m.ambil || []).length ? '' : ambilDone()[m.id]
+  ? `<div class="ambiltag ok">✓ Sudah diambil di ${m.ambil.map(esc).join(' & ')}</div>`
+  : `<div class="ambiltag">📍 Ambil di ${m.ambil.map(esc).join(' & ')}${m.ambilIsi ? ': ' + esc(m.ambilIsi) : ''}</div>`;
 /* ---------- Rute: pilih rute yang dibawa hari ini + pantau isinya ---------- */
 const RST = { produksi: ['Masih produksi', 'rs-prod'], siap: ['Siap', 'rs-siap'], dimuat: ['Di mobil', 'rs-jalan'], terkirim: ['Terkirim', 'rs-done'] };
 function ruteHTML(){
@@ -686,12 +714,49 @@ async function setRute(rute, take){
 function refreshRute(){ if (state.tab === 'rute'){ const y = window.scrollY; render(); window.scrollTo(0, y); } }
 
 /* ---------- Muat: centang barang yang masuk mobil ---------- */
+/* ---------- Ambil di HB: barang dari lokasi lain dibawa ke lokasi utama ---------- */
+function jemputHTML(){
+  const J = state.jemput, D = state.diambil;
+  if (!J.length && !D.length) return '';
+  const lok = [...new Set(J.concat(D).map(j => j.lokasi))].join(' & '), ke = (J[0] || D[0]).ke || 'Anggrek';
+  let html = `<div class="rgrp jemput-h">📦 Ambil di ${esc(lok)} → bawa ke ${esc(ke)}${J.length > 1 ? `<label><input type="checkbox" data-jall="1" ${J.every(j => state.jPick.has(j.orderId)) ? 'checked' : ''}>Pilih semua</label>` : ''}</div>`;
+  if (J.length) html += `<div class="lainnote" style="padding-top:2px">Centang <b>tiap pesanan</b> yang barangnya benar-benar kamu bawa. Cocokkan jumlahnya.</div>` + J.map(j => { const on = state.jPick.has(j.orderId); return `<label class="pick jemput ${on ? 'on' : ''}"><input type="checkbox" data-jpick="${esc(j.orderId)}" ${on ? 'checked' : ''}>
+      <div><div class="name">${esc(custName(j.customerId))}</div><div class="sub jisi">${esc(j.isi)}</div>
+      <div class="sub">${esc(j.orderId)} · kirim ${esc(shortDate(j.tgl))}${j.telat ? ' · <b style="color:var(--danger)">terlambat</b>' : ''}</div></div></label>`; }).join('')
+    + `<div style="padding:10px 16px"><button class="primary" data-act="pickup" ${state.jPick.size && !state.loading ? '' : 'disabled'} style="margin:0">Sudah diambil (${state.jPick.size})</button></div>`;
+  if (D.length) html += `<div class="lainnote">Sudah diambil hari ini</div>` + D.map(j => `<div class="mine"><div><div class="name">${esc(custName(j.customerId))}</div>
+      <div class="sub">${esc(j.isi)}</div><div class="sub">✓ ${esc(j.kurir)} ${esc(j.jam)} · tunggu dimuat di ${esc(j.ke)}</div></div>
+      ${j.punyaKu && j.bisaBatal ? `<button class="smallbtn" data-act="pickupcancel" data-id="${esc(j.orderId)}">Batal ambil</button>` : ''}</div>`).join('');
+  return html + '<div style="height:10px"></div>';
+}
+async function pickupSelected(){
+  const ids = [...state.jPick]; if (!ids.length) return;
+  const list = state.jemput.filter(j => ids.includes(j.orderId));
+  if (!confirm('Barang yang kamu bawa dari ' + [...new Set(list.map(j => j.lokasi))].join(' & ') + ':\n' + list.map(j => '• ' + custName(j.customerId) + ': ' + j.isi).join('\n') + '\n\nSudah dicek lengkap?')) return;
+  state.loading = true; refreshMuat();
+  try{
+    const d = await api('pickup', { kurirId: state.session.kurirId, pin: state.session.pin, uid: uuid(), orderIds: ids });
+    state.jPick = new Set(); setLists(d);
+    const bad = d.results.filter(r => !r.ok);
+    toast(bad.length ? `${d.diambilN} dicatat. Gagal: ${bad.map(r => r.orderId + ' (' + r.error + ')').join(', ')}` : `${d.diambilN} pesanan dicatat sudah diambil. Setelah sampai, barang siap dimuat.`);
+    if (state.omsUrl) try { fetch(state.omsUrl + '?q=' + encodeURIComponent(JSON.stringify({ action: 'sinkron' })), { mode: 'no-cors' }); } catch (e) {}
+    setTimeout(() => { if (state.tab === 'muat') loadToday().then(refreshMuat); }, 8000);
+  }catch(e){ toast(e.network ? 'Perlu sinyal. Coba lagi.' : e.message); }
+  state.loading = false; refreshMuat();
+}
+async function pickupCancel(id){
+  if (!confirm('Batalkan catatan ambil untuk pesanan ini?')) return;
+  try{ setLists(await api('pickupCancel', { kurirId: state.session.kurirId, pin: state.session.pin, orderId: id })); toast('Dibatalkan.'); }
+  catch(e){ toast(e.message); }
+  refreshMuat();
+}
+
 function muatHTML(){
   const all = state.siap;
   const rutes = [...new Set(all.map(m => m.rute || ''))];
   const f = rutes.includes(state.ruteFilter) ? state.ruteFilter : '';
   const list = all.filter(m => !f || (m.rute || '') === f);
-  let html = '';
+  let html = jemputHTML();
   if (rutes.length > 1) html += `<div class="rchips"><button class="chip" data-rf="" aria-pressed="${!f}">Semua (${all.length})</button>${rutes.map(r => `<button class="chip" data-rf="${esc(r)}" aria-pressed="${f === r}">${esc(r || 'Tanpa rute')} (${all.filter(m => (m.rute || '') === r).length})</button>`).join('')}</div>`;
   if (!list.length) html += `<div class="empty">${state.lain.length ? 'Tidak ada barang siap untuk jadwal hari ini.' : 'Belum ada barang siap dikirim. Barang muncul di sini setelah produksi menandai <b>Siap dikirim</b>.'}</div>`;
   let last = null;
@@ -720,7 +785,7 @@ function muatHTML(){
   }
   if (state.muatan.length){
     html += `<div class="rgrp">Di mobil (${state.muatan.length})</div>` + state.muatan.map(m => `<div class="mine"><div><div class="name">${esc(custName(m.customerId))}</div>
-      <div class="sub">${esc(m.id)} · ${esc(m.isi)}</div>${ambilTag(m)}</div><button class="smallbtn" data-unload="${esc(m.id)}">Turunkan</button></div>`).join('');
+      <div class="sub">${esc(m.id)} · ${esc(m.isi)}</div>${ambilTag(m)}</div><div class="acts">${(m.ambil || []).length && !ambilDone()[m.id] ? `<button class="smallbtn pri" data-act="ambilok" data-id="${esc(m.id)}">Sudah ambil di ${esc(m.ambil.join(' & '))}</button>` : ''}<button class="smallbtn" data-unload="${esc(m.id)}">Turunkan</button></div></div>`).join('');
   }
   const n = state.pick.size;
   html += `<div class="loadbar"><button class="primary" data-act="load" ${n && !state.loading ? '' : 'disabled'}>${state.loading ? 'Memuat…' : 'Muat ke mobil (' + n + ')'}</button></div>`;
@@ -732,6 +797,8 @@ async function loadSelected(){
   const ids = [...state.pick]; if (!ids.length) return;
   const luar = state.lain.filter(m => ids.includes(m.id));
   if (luar.length && !confirm(luar.length + ' barang di luar jadwal/rute kamu akan dibawa hari ini:\n' + luar.map(m => '• ' + custName(m.customerId) + (m.kurirLain ? ' (untuk ' + m.kurirLain + ')' : '')).join('\n') + '\n\nLanjut muat?')) return;
+  const hb = state.siap.concat(state.lain).filter(m => ids.includes(m.id) && (m.ambil || []).length);
+  if (hb.length && !confirm('Jangan lupa mampir mengambil barang di ' + [...new Set(hb.flatMap(m => m.ambil))].join(' & ') + ':\n' + hb.map(m => '• ' + custName(m.customerId) + ': ' + (m.ambilIsi || '')).join('\n') + '\n\nLanjut muat?')) return;
   // Layar langsung berubah; server menyusul
   const moved = state.siap.concat(state.lain).filter(m => ids.includes(m.id));
   const sebelumLain = state.lain;
@@ -866,6 +933,7 @@ function openSheet(c, preShip){
       <div class="addr">${esc(c.alamat || c.area || 'Alamat belum diisi')}${maps ? `<br><a href="${maps}" target="_blank" rel="noopener">Buka rute di Maps</a>` : ''}</div>
       ${done ? `<div class="pills"><span class="pill warn">Sudah dicatat hari ini pukul ${esc(done.jam.slice(0,5))}</span></div>` : ''}
       ${shipField}
+      <div id="ambilbox"></div>
       <div class="field" id="f-penerima"><label for="penerima">Nama penerima <span class="req">*</span></label>
         <input id="penerima" type="text" maxlength="60" placeholder="Contoh: Kadek (barista)" autocomplete="off" autocapitalize="words" enterkeyhint="next">
         ${(LS.get('hbd_penerima', {})[c.id] || []).length ? `<div class="chips">${LS.get('hbd_penerima', {})[c.id].map(n => `<button class="chip" data-penerima="${esc(n)}">${esc(n)}</button>`).join('')}</div>` : ''}
@@ -877,6 +945,7 @@ function openSheet(c, preShip){
       <button class="ghost" data-act="close">Tutup</button>
     </section>`;
   document.body.appendChild(div);
+  updAmbilBox();
   gpsStart();
   $('#penerima').focus();
 }
@@ -1220,6 +1289,9 @@ document.addEventListener('click', e => {
     case 'deliver': return markDelivered();
     case 'load': return loadSelected();
     case 'lain': state.showLain = !state.showLain; return refreshMuat();
+    case 'pickup': return pickupSelected();
+    case 'pickupcancel': return pickupCancel(t.dataset.id);
+    case 'ambilok': setAmbilDone(t.dataset.id, true); toast('Ditandai sudah diambil.'); return refreshMuat();
     case 'rtoggle': { const cur = state.openRute === null ? (state.rutes.find(x => (x.rute || '') === t.dataset.rute) || {}).punyaKu : state.openRute === t.dataset.rute; state.openRute = cur ? '' : t.dataset.rute; return refreshRute(); }
     case 'rtake': return setRute(t.dataset.rute, true);
     case 'rrelease': if (!confirm('Lepas rute ' + t.dataset.rute + '? Barang yang sudah di mobil tetap di mobil.')) return; return setRute(t.dataset.rute, false);
@@ -1247,6 +1319,7 @@ document.addEventListener('input', e => {
   if (e.target.id === 'penerima' && e.target.value.trim()){ $('#f-penerima')?.classList.remove('bad'); $('#f-penerima .hint')?.remove(); }
 });
 document.addEventListener('change', e => {
+  if (e.target.name === 'ship') updAmbilBox();
   if (e.target.matches('select[id$="-sel"]')){ const t = $('#' + e.target.id.replace('-sel', '-txt')); if (t){ t.style.display = e.target.value === 'Lainnya' ? '' : 'none'; if (e.target.value === 'Lainnya') t.focus(); } }
   if (e.target.matches('.person input[type=radio]')){
     const p = e.target.closest('.person');
@@ -1255,6 +1328,8 @@ document.addEventListener('change', e => {
   }
   if (e.target.id === 'hdate' && e.target.value) loadHistory(e.target.value);
   if (e.target.dataset.pick){ e.target.checked ? state.pick.add(e.target.dataset.pick) : state.pick.delete(e.target.dataset.pick); refreshMuat(); }
+  if (e.target.dataset.jpick){ e.target.checked ? state.jPick.add(e.target.dataset.jpick) : state.jPick.delete(e.target.dataset.jpick); return refreshMuat(); }
+  if (e.target.dataset.jall){ state.jemput.forEach(j => e.target.checked ? state.jPick.add(j.orderId) : state.jPick.delete(j.orderId)); return refreshMuat(); }
   if (e.target.dataset.pickall !== undefined){
     const r = e.target.dataset.pickall, f = state.ruteFilter;
     state.siap.filter(m => (m.rute || 'Tanpa rute') === r && (!f || (m.rute || '') === f)).forEach(m => e.target.checked ? state.pick.add(m.id) : state.pick.delete(m.id));
