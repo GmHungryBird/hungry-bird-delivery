@@ -93,6 +93,7 @@ button,input{font:inherit;color:inherit}
 .smallbtn.pri{background:var(--stamp);color:#fff;border-color:var(--stamp)}
 .ritem{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;padding:8px 16px 8px 28px;border-top:1px dashed var(--line)}
 .ritem .name{font-weight:600}.ritem .sub{color:var(--muted);font-size:13px}
+.ambiltag{display:inline-block;margin:3px 0 2px;font-size:13px;font-weight:700;color:#7A5800;background:#FFF1C2;border-radius:999px;padding:2px 10px}
 .lainbtn{display:block;width:100%;text-align:left;margin:14px 0 0;padding:12px 16px;border:0;border-top:1px dashed var(--line);border-bottom:1px dashed var(--line);background:transparent;font:inherit;font-weight:700;color:var(--muted);cursor:pointer}
 .lainnote{padding:8px 16px;font-size:13px;color:var(--muted)}
 .taglain{color:var(--danger);font-weight:600}
@@ -647,6 +648,7 @@ function supirHTML(){
   </div>`;
 }
 
+const ambilTag = m => (m.ambil || []).length ? `<div class="ambiltag">📍 Ambil juga di ${m.ambil.map(esc).join(' & ')}</div>` : '';
 /* ---------- Rute: pilih rute yang dibawa hari ini + pantau isinya ---------- */
 const RST = { produksi: ['Masih produksi', 'rs-prod'], siap: ['Siap', 'rs-siap'], dimuat: ['Di mobil', 'rs-jalan'], terkirim: ['Terkirim', 'rs-done'] };
 function ruteHTML(){
@@ -664,7 +666,7 @@ function ruteHTML(){
         <span class="rcnt">${['produksi', 'siap', 'dimuat', 'terkirim'].filter(k => cnt(k)).map(k => `<span class="rs ${RST[k][1]}">${cnt(k)} ${RST[k][0].toLowerCase()}</span>`).join('') || '<span class="rs">kosong</span>'}</span></button>
       <div class="rwho">${r.punyaKu ? '<b>🚚 Kamu</b>' : ''}${lain.map(k => `<span>🚚 ${esc(k.kurir)}${k.supir ? ' (' + esc(k.supir) + ')' : ''} · ${esc(k.jam)}</span>`).join('')}${!r.kurir.length ? '<span class="muted">Belum dipilih kurir</span>' : ''}</div>
       ${key ? `<div class="racts">${r.punyaKu ? `<button class="smallbtn" data-act="rrelease" data-rute="${esc(key)}">Lepas rute</button>${cnt('siap') ? `<button class="smallbtn pri" data-act="rmuat" data-rute="${esc(key)}">Muat barang rute ini (${cnt('siap')})</button>` : ''}` : `<button class="smallbtn pri" data-act="rtake" data-rute="${esc(key)}">${lain.length ? 'Ikut bawa rute ini' : 'Ambil rute ini'}</button>`}</div>` : ''}
-      ${open ? (r.items.length ? r.items.map(i => `<div class="ritem"><div><div class="name">${esc(custName(i.customerId))}</div><div class="sub">${esc(i.isi)}</div>
+      ${open ? (r.items.length ? r.items.map(i => `<div class="ritem"><div><div class="name">${esc(custName(i.customerId))}</div><div class="sub">${esc(i.isi)}</div>${ambilTag(i)}
           <div class="sub">${esc(i.id)}${i.kurir && i.status !== 'siap' ? ' · ' + esc(i.kurir) : ''}${i.telat ? ' · <b style="color:var(--danger)">terlambat</b>' : ''}</div></div>
           <span class="rs ${RST[i.status][1]}">${RST[i.status][0]}</span></div>`).join('') : '<div class="ritem muted">Tidak ada kiriman hari ini.</div>') : ''}
     </div>`;
@@ -703,7 +705,7 @@ function muatHTML(){
     }
     const on = state.pick.has(m.id);
     html += `<label class="pick ${on ? 'on' : ''}"><input type="checkbox" data-pick="${esc(m.id)}" ${on ? 'checked' : ''}>
-      <div><div class="name">${esc(custName(m.customerId))}</div><div class="sub">${esc(m.isi)}</div>
+      <div><div class="name">${esc(custName(m.customerId))}</div><div class="sub">${esc(m.isi)}</div>${ambilTag(m)}
       <div class="sub">${esc(m.id)}${m.invoice ? ' · ' + esc(m.invoice) : ''}${m.telat ? ' · <b style="color:var(--danger)">terlambat</b>' : ''}${m.untukKamu ? ' · <span class="tagk">untuk kamu</span>' : ''}</div></div></label>`;
   });
   if (state.lain.length){
@@ -718,7 +720,7 @@ function muatHTML(){
   }
   if (state.muatan.length){
     html += `<div class="rgrp">Di mobil (${state.muatan.length})</div>` + state.muatan.map(m => `<div class="mine"><div><div class="name">${esc(custName(m.customerId))}</div>
-      <div class="sub">${esc(m.id)} · ${esc(m.isi)}</div></div><button class="smallbtn" data-unload="${esc(m.id)}">Turunkan</button></div>`).join('');
+      <div class="sub">${esc(m.id)} · ${esc(m.isi)}</div>${ambilTag(m)}</div><button class="smallbtn" data-unload="${esc(m.id)}">Turunkan</button></div>`).join('');
   }
   const n = state.pick.size;
   html += `<div class="loadbar"><button class="primary" data-act="load" ${n && !state.loading ? '' : 'disabled'}>${state.loading ? 'Memuat…' : 'Muat ke mobil (' + n + ')'}</button></div>`;
@@ -769,7 +771,7 @@ function muatanHTML(){
   return `<div class="muatan"><div class="list-head"><b>Muatan hari ini (${list.length})</b></div>
     ${list.map(m => { const head = (m.rute || 'Tanpa rute') !== last && list.some(x => (x.rute || '') !== (list[0].rute || '')) ? `<div class="ruteh">${esc(last = m.rute || 'Tanpa rute')}</div>` : ''; return head + `<button class="mu" data-ship="${esc(m.id)}">
       <div><div class="name">${esc(custName(m.customerId))}</div>
-      <div class="sub">${esc(m.isi)}</div>
+      <div class="sub">${esc(m.isi)}</div>${ambilTag(m)}
       <div class="sub">${esc(m.id)}${m.invoice ? ' · ' + esc(m.invoice) : ''}${m.telat ? ' · <b style="color:var(--danger)">terlambat dari ' + esc(shortDate(m.tgl)) + '</b>' : ''}</div></div>
       <span class="go">Antar ›</span></button>`; }).join('')}</div>`;
 }
